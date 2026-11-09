@@ -1,0 +1,28 @@
+# Источники правил → набор данных телеметрии SCII (поле event.dataset, схема 1).
+# Применяется при конвертации всех правил репозитория и в стенде tools/harness.py: запрос ищет
+# только в событиях своего источника, даже если гейт и устройства пишут в один индекс.
+# Индекс для ES|QL (from scii-*) — тот же шаблон имён, к которому подходит schema/index-template.json;
+# остальные бэкенды это состояние не используют.
+name: SCII telemetry, schema 1
+priority: 10
+transformations:
+  - id: scii_device_dataset
+    type: add_condition
+    conditions:
+      event.dataset: scii.device
+    rule_conditions:
+      - type: logsource
+        product: scii
+        service: device
+  - id: scii_gate_dataset
+    type: add_condition
+    conditions:
+      event.dataset: scii.gate
+    rule_conditions:
+      - type: logsource
+        product: scii
+        service: gate
+  - id: scii_index
+    type: set_state
+    key: index
+    val: scii-*

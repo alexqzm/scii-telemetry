@@ -1,0 +1,3 @@
+sequence by file.hash.sha256 with maxspan=30d 
+ [any where event.dataset:"scii.gate" and (event.action:"gate-decision" and scii.gate.code:30)] 
+ [any where event.dataset:"scii.device" and (event.action:"device-install" and event.outcome:"success")] by  with runs=2

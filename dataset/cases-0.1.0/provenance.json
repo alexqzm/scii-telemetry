@@ -1,0 +1,42 @@
+{
+  "description": "Решения гейта и отчёты устройств дополнительных случаев C1–C9 (labcases/cases.py) на копии каталога стенда cps-update-lab после scenario matrix",
+  "generated": "2026-11-09",
+  "lab": {
+    "repository": "https://github.com/alexqzm/cps-update-lab",
+    "commit": "2d22f9c55e67f888969d89fce5eea36ae5f7ee5d",
+    "version": "0.1.0",
+    "command": "cpslab --home <каталог> scenario matrix; копия каталога; PYTHONPATH=<cps-update-lab> python labcases/cases.py --home <копия>",
+    "matrix_check": "совпали с ожидаемыми: 33 из 33 исходов",
+    "profile": "cpslab/data/profile.json"
+  },
+  "cases": "raw/cases.json — что сделано в каждом случае, ожидаемый и полученный исход; все 9 совпали",
+  "tools": {
+    "scii-gate": {
+      "repository": "https://github.com/alexqzm/scii-gate",
+      "commit": "d210811f27a9b9302f018faf7f019d38dfbb9227",
+      "version": "0.1.5"
+    },
+    "scii-agent": {
+      "repository": "https://github.com/alexqzm/scii-verify",
+      "commit": "1c4ac0ffbc5278c493db8a3ed8eae5cf8eef85e3"
+    },
+    "cosign": "v2.4.1",
+    "gpg": "2.4.4",
+    "git": "2.43.0",
+    "python": "3.13.18"
+  },
+  "export_command": "python -m sciitel export --lab-home <копия> --profile <cps-update-lab>/cpslab/data/profile.json --out dataset/cases-0.1.0/events.jsonl --provenance dataset/cases-0.1.0/provenance.json",
+  "volatile_fields": [
+    "@timestamp",
+    "scii.evidence.reason"
+  ],
+  "reproducibility": "Случаи, выполненные на втором независимом каталоге стенда, дали тот же набор без изменчивых полей (python -m sciitel compare); CI повторяет это на закреплённом коммите стенда.",
+  "raw": "raw/ — выходы стенда после случаев: журнал и отчёты гейта (решения 1–9), отчёты, открытые ключи и конфигурация устройств случаев (закрытые ключи не включены), профиль политики; python -m sciitel export --lab-home raw --profile raw/profile.json воспроизводит events.jsonl побайтно",
+  "exporter": "scii-telemetry 0.1.0",
+  "schema": "1",
+  "events": 181,
+  "datasets": {
+    "scii.gate": 162,
+    "scii.device": 19
+  }
+}

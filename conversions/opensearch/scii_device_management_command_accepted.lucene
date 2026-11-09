@@ -1,0 +1,1 @@
+event.dataset:scii.device AND (event.action:device\-mgmt AND event.outcome:success AND (scii.mgmt.command:(stop OR factory\-reset)))

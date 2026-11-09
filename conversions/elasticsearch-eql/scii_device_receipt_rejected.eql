@@ -1,0 +1,1 @@
+any where event.dataset:"scii.device" and (event.action:"device-reject" and (event.reason like~ ("FORMAT", "KEY", "SIGNATURE", "POLICY", "DECISION")))

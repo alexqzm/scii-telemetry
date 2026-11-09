@@ -1,0 +1,53 @@
+{
+  "title": "scii-telemetry: телеметрия гейта SCII и устройств киберфизических систем для SIEM",
+  "upload_type": "software",
+  "version": "0.1.0",
+  "language": "rus",
+  "license": "apache-2.0",
+  "creators": [
+    {
+      "name": "Kuzmin, Alexander",
+      "orcid": "0000-0002-0393-412X"
+    }
+  ],
+  "description": "<p>Выгрузка решений гейта SCII и подписанных отчётов устройств киберфизических систем в события ECS (схема JSON и шаблон индекса OpenSearch и Elasticsearch) с проверкой подписи отчётов, сверкой установленных образов с журналом гейта и отслеживанием номера версии; 19 файлов правил Sigma по отчётам устройств, решениям гейта и корреляциям; запросы OpenSearch, Elasticsearch (Lucene, EQL, ES|QL) и Splunk.</p><p>Проверка: наборы событий из 33 прогонов сценариев стенда cps-update-lab и 9 дополнительных случаев на его классах с настоящими scii-gate и scii-agent, воспроизводимые в CI из закреплённых коммитов; ожидаемые срабатывания из каталога сценариев стенда и отчётов гейта; мутационная проверка 53 значений условий; валидаторы pySigma с MITRE ATT&amp;CK 20.1 (Enterprise и ICS); исполнение запросов в OpenSearch 3.8.0 и Elasticsearch 9.5.5. Найдены дефекты бэкенда EQL и различия семантики окон корреляций между бэкендами.</p>",
+  "keywords": [
+    "SIEM",
+    "Sigma",
+    "detection engineering",
+    "cyber-physical systems",
+    "ICS",
+    "firmware update",
+    "software supply chain",
+    "ECS",
+    "OpenSearch",
+    "Elasticsearch",
+    "evidence graph"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/alexqzm/scii-telemetry",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.23833592",
+      "relation": "references",
+      "resource_type": "software",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "https://github.com/alexqzm/cps-update-lab",
+      "relation": "references",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/alexqzm/scii-verify",
+      "relation": "references",
+      "resource_type": "software",
+      "scheme": "url"
+    }
+  ]
+}

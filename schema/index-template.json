@@ -1,0 +1,239 @@
+{
+  "index_patterns": [
+    "scii-*"
+  ],
+  "template": {
+    "mappings": {
+      "dynamic": "strict",
+      "dynamic_templates": [
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "event": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "kind": {
+              "type": "keyword"
+            },
+            "module": {
+              "type": "keyword"
+            },
+            "dataset": {
+              "type": "keyword"
+            },
+            "category": {
+              "type": "keyword"
+            },
+            "type": {
+              "type": "keyword"
+            },
+            "action": {
+              "type": "keyword"
+            },
+            "outcome": {
+              "type": "keyword"
+            },
+            "reason": {
+              "type": "keyword"
+            },
+            "sequence": {
+              "type": "long"
+            }
+          }
+        },
+        "host": {
+          "properties": {
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "file": {
+          "properties": {
+            "hash": {
+              "properties": {
+                "sha256": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "package": {
+          "properties": {
+            "name": {
+              "type": "keyword"
+            },
+            "version": {
+              "type": "keyword"
+            }
+          }
+        },
+        "observer": {
+          "properties": {
+            "vendor": {
+              "type": "keyword"
+            },
+            "product": {
+              "type": "keyword"
+            },
+            "version": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "labels": {
+          "type": "object",
+          "dynamic": true
+        },
+        "scii": {
+          "properties": {
+            "schema": {
+              "type": "keyword"
+            },
+            "gate": {
+              "properties": {
+                "serial": {
+                  "type": "long"
+                },
+                "variant": {
+                  "type": "keyword"
+                },
+                "device_class": {
+                  "type": "long"
+                },
+                "code": {
+                  "type": "long"
+                },
+                "decision": {
+                  "type": "keyword"
+                },
+                "veto": {
+                  "type": "boolean"
+                },
+                "complete": {
+                  "type": "boolean"
+                },
+                "r_min": {
+                  "type": "double"
+                },
+                "r_max": {
+                  "type": "double"
+                },
+                "theta": {
+                  "type": "double"
+                }
+              }
+            },
+            "evidence": {
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                },
+                "stage": {
+                  "type": "keyword"
+                },
+                "stage_name": {
+                  "type": "keyword"
+                },
+                "mandatory": {
+                  "type": "boolean"
+                },
+                "stage_mandatory": {
+                  "type": "boolean"
+                },
+                "state": {
+                  "type": "keyword"
+                },
+                "reason": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "device": {
+              "properties": {
+                "class": {
+                  "type": "long"
+                },
+                "instance": {
+                  "type": "keyword"
+                },
+                "level": {
+                  "type": "long"
+                },
+                "enforcement": {
+                  "type": "keyword"
+                },
+                "path": {
+                  "type": "keyword"
+                },
+                "installed": {
+                  "properties": {
+                    "sha256": {
+                      "type": "keyword"
+                    },
+                    "version": {
+                      "type": "keyword"
+                    },
+                    "svn": {
+                      "type": "long"
+                    }
+                  }
+                },
+                "svn_previous": {
+                  "type": "long"
+                },
+                "svn_change": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "report": {
+              "properties": {
+                "signature": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "reconcile": {
+              "properties": {
+                "admitted": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "mgmt": {
+              "properties": {
+                "command": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "_meta": {
+    "description": "Событие телеметрии гейта SCII и устройства КФС, схема 1; сгенерирован python -m sciitel index-template",
+    "schema": "1"
+  }
+}

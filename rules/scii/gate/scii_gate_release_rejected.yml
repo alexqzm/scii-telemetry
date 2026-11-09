@@ -1,0 +1,28 @@
+title: SCII Gate Rejected a Release
+id: 87f16207-89c0-4739-b7a5-226ce51ad223
+status: experimental
+description: |
+    Detects a gate decision to reject a release (code 30): a veto, or an upper bound of the integrity index
+    below the policy threshold. Unlike a request for missing evidence, a rejection means that the delivered
+    evidence does not support the release; in cps-update-lab it also covers the compromised build without an
+    independent rebuild, where nothing is refuted but the index stays below the threshold.
+references:
+    - https://github.com/alexqzm/scii-gate
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.t1195.002
+logsource:
+    product: scii
+    service: gate
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: gate-decision
+        scii.gate.code: 30
+    condition: selection
+falsepositives:
+    - Releases of vendors that do not yet deliver the evidence the policy weighs heavily.
+level: medium

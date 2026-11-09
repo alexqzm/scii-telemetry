@@ -1,0 +1,13 @@
+[project]
+name = "scii-telemetry"
+version = "0.1.0"
+description = "SCII gate and CPS device telemetry for SIEM: ECS events, Sigma rules and queries, verified on cps-update-lab"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "Alexander Kuzmin" }]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"

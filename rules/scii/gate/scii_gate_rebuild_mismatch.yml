@@ -1,0 +1,30 @@
+title: SCII Independent Rebuild Does Not Match the Release
+id: 3a4493d6-f3c1-486f-84e5-52f9057a3a5c
+status: experimental
+description: |
+    Detects refuted evidence s24: an independent rebuild of the declared source produced a different image. The
+    vendor's own build environment produced something its source does not explain; this is the evidence that
+    exposes a compromised builder signing false provenance with its genuine key. In cps-update-lab it is refuted
+    for the build from a compromised build environment and for the release archive that differs from the tag.
+references:
+    - https://github.com/alexqzm/scii-gate
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t1195.002
+    - attack.t0862
+logsource:
+    product: scii
+    service: gate
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: gate-evidence
+        scii.evidence.id: s24
+        scii.evidence.state: refuted
+    condition: selection
+falsepositives:
+    - Non-reproducible builds, for example dependence on the build path or on the zlib implementation; the rebuild must use the documented environment.
+level: high

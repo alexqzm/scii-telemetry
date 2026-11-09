@@ -1,0 +1,27 @@
+title: SCII Update Addressed to Another Device
+id: 2a73170b-b762-4086-a083-fbf25a6869a2
+status: experimental
+description: |
+    Detects a device refusing an update because the receipt was issued for another device class or instance
+    (TARGET). A genuine release for different hardware can still disrupt the process if installed (scenario A5
+    of cps-update-lab at protection level L2: a pump-station release offered to a tank controller).
+references:
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/device-checks.md
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason: TARGET
+    condition: selection
+falsepositives:
+    - Mistakes in update server channels or in the fleet inventory.
+level: medium

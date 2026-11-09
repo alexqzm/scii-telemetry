@@ -1,0 +1,85 @@
+# Подписи правил для таблиц (label — в ячейках матрицы, summary — в каталоге правил) и связь
+# сценариев стенда cps-update-lab с выпусками, решения гейта по которым в них участвуют.
+# Таблицы docs/matrix.md, docs/rules.md и блоки README.md собирает python -m tools.matrix --write.
+
+rules:
+  # устройство: отказы при установке
+  scii_device_boot_signature_rejected:
+    label: подпись образа (BOOT_SIG)
+    summary: загрузчик отверг образ, подпись поставщика над которым не проверяется
+  scii_device_image_digest_mismatch:
+    label: образ не тот, что в квитанции
+    summary: квитанция подлинная, но длина (SIZE) или дайджест (DIGEST) образа другие
+  scii_device_receipt_rejected:
+    label: квитанция отвергнута
+    summary: квитанция не разбирается, подписана чужим ключом, изменена, выдана под другую политику или не о допуске
+  scii_device_update_without_receipt:
+    label: обновление без квитанции
+    summary: образ пришёл по каналу обновления без квитанции гейта (NO_RECEIPT)
+  scii_device_program_download_without_receipt:
+    label: загрузка логики без квитанции
+    summary: программа с инженерной станции без квитанции гейта (NO_RECEIPT на пути ews)
+  scii_device_rollback_blocked:
+    label: откат остановлен (ROLLBACK)
+    summary: номер версии в квитанции ниже установленного
+  scii_device_wrong_target:
+    label: чужое устройство (TARGET)
+    summary: квитанция выдана для другого класса или экземпляра устройства
+  scii_device_state_invalid:
+    label: нет состояния (STATE)
+    summary: у устройства нет действительной копии состояния антиотката
+  # устройство: что установлено и кто управлял
+  scii_device_installed_image_not_admitted:
+    label: установлен недопущенный образ
+    summary: установлен образ, которого нет среди допущенных гейтом для этого класса устройства (сверка с журналом гейта)
+  scii_device_version_decreased:
+    label: версия понизилась
+    summary: установлен образ с номером версии ниже прежнего
+  scii_device_report_signature_invalid:
+    label: отчёт подделан
+    summary: подпись отчёта устройства не проверяется его ключом
+  scii_device_management_command_accepted:
+    label: команда управления
+    summary: контроллер выполнил команду stop или factory-reset по каналу управления
+  # гейт
+  scii_gate_veto:
+    label: вето гейта
+    summary: опровергнуто свидетельство обязательной стадии
+  scii_gate_release_rejected:
+    label: отказ гейта
+    summary: решение гейта «отказ» (вето или верхняя граница индекса ниже порога)
+  scii_gate_evidence_requested:
+    label: запрос свидетельств
+    summary: не предъявлено обязательное свидетельство, гейт запрашивает его
+  scii_gate_rebuild_mismatch:
+    label: пересборка не совпала (s24)
+    summary: независимая пересборка из заявленного источника дала другой образ
+  scii_gate_source_signature_refuted:
+    label: источник не подтверждён (s11, s14)
+    summary: подписи коммитов или тега выпуска не проверяются доверенными ключами
+  # корреляции
+  scii_rejected_release_installed:
+    label: отвергнутый гейтом образ установлен
+    summary: устройство установило образ, по которому гейт ранее вынес отказ (тот же SHA-256, окно 30 суток)
+  scii_device_management_auth_failures:
+    label: подбор пароля
+    summary: три и более отказа DENIED в канале управления одного контроллера за 10 минут
+
+# Выпуск, решение гейта по которому участвует в сценарии: cps-update-lab 0.1.0,
+# cpslab/scenarios.py (функции сценариев). null — гейт в сценарии не участвует.
+scenario_release:
+  N1: tank-1.1.0
+  A1: tank-1.1.0
+  A2: tank-1.1.0-stolen-key
+  A3: tank-1.1.0-compromised-build
+  A3b: tank-1.1.0-compromised-build-norebuild
+  A4: tank-1.0.0
+  A5: pump-1.1.0
+  A6: null
+  A7: tank-1.1.0-from-archive
+  M1: tank-1.2.0
+  M2: null
+
+# Выпуск гейта, на котором проверяется случай без прогона устройства (labcases/cases.py).
+case_release:
+  C9: tank-1.1.0-no-provenance

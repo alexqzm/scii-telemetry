@@ -1,0 +1,213 @@
+# Сценарии учебного стенда cps-update-lab.
+#
+# initial — выпуск, установленный на устройстве до начала сценария.
+# expected — ожидаемый исход на каждом уровне защиты устройства (L0 без проверки, L1 подпись
+# поставщика, L2 квитанция гейта SCII). Тесты и CI сверяют фактические исходы с ожидаемыми.
+#   accepted — устройство приняло действие нарушителя (установило образ, загрузило логику, выполнило команду);
+#   reason   — OK или код отказа (BOOT_SIG, IMAGE_FORMAT, коды scii-agent: NO_RECEIPT, TARGET, ROLLBACK, DIGEST…);
+#   process  — состояние процесса за 300 с модельного времени: normal, overflow (перелив), empty (уровень 5 % и ниже);
+#   alert    — монитор контура реагирования нашёл на устройстве образ, не допущенный гейтом.
+# gate — решение гейта по выпуску, который участвует в сценарии: 0 допуск, 10 ручное рассмотрение,
+# 30 отказ; null — гейт не участвует.
+#
+# atlas — записи атласа https://github.com/alexqzm/cps-supply-chain-atlas с той же схемой атаки.
+# attack — техники MITRE ATT&CK v20 (сопоставление автора стенда; идентификаторы сверены по атласу).
+# opo — меры раздела XIV «Управление обновлениями программного обеспечения» приложения к приказу
+# ФСТЭК России от 25.12.2017 № 239 (сопоставление автора стенда).
+
+schema: cpslab/scenarios/v1
+attack_version: v20
+scenarios:
+  - id: N1
+    title: Штатное обновление 1.0.0 → 1.1.0
+    lab: 1
+    initial: tank-1.0.0
+    summary: >-
+      Поставщик выпускает ТК-1 1.1.0 с полным комплектом свидетельств, гейт допускает выпуск и выдаёт
+      квитанцию, устройство устанавливает обновление на любом уровне защиты.
+    atlas: []
+    attack: []
+    opo: [ОПО.1, ОПО.2, ОПО.3, ОПО.4]
+    stopped_by: "—"
+    gate: 0
+    expected:
+      L0: {accepted: true, reason: OK, process: normal, alert: false}
+      L1: {accepted: true, reason: OK, process: normal, alert: false}
+      L2: {accepted: true, reason: OK, process: normal, alert: false}
+
+  - id: A1
+    title: Подмена образа на сервере обновлений
+    lab: 2
+    initial: tank-1.0.0
+    summary: >-
+      Нарушитель получил запись на сервер обновлений и заменил образ допущенного выпуска своим, без
+      подписи поставщика. Подпись образа и квитанция остались от подлинного выпуска.
+    atlas: [havex-2014, notpetya-medoc-2017, flame-2012, medtronic-carelink-2018]
+    attack: [T0862, T1693.001]
+    opo: [ОПО.1, ОПО.2]
+    stopped_by: "L1: подпись образа (BOOT_SIG); L2: дайджест образа в квитанции (DIGEST)"
+    gate: 0
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: true}
+      L1: {accepted: false, reason: BOOT_SIG, process: normal, alert: false}
+      L2: {accepted: false, reason: DIGEST, process: normal, alert: false}
+
+  - id: A2
+    title: Вредоносный образ, подписанный похищенными ключами поставщика
+    lab: 3
+    initial: tank-1.0.0
+    summary: >-
+      Нарушитель похитил ключи подписи пакета и образа, собрал вредоносный образ с меткой версии 1.1.0 и
+      опубликовал его. Ключей сборочного агента, хранилища и тегов поставщика у него нет.
+    atlas: [stuxnet-2010, shadowhammer-2019]
+    attack: [T0862, T1693.001]
+    opo: [ОПО.1, ОПО.2]
+    stopped_by: "гейт: s11, s14, s21, s22, s41 опровергнуты (вето); L2: нет квитанции (NO_RECEIPT)"
+    gate: 30
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: true}
+      L1: {accepted: true, reason: OK, process: overflow, alert: true}
+      L2: {accepted: false, reason: NO_RECEIPT, process: normal, alert: false}
+
+  - id: A3
+    title: Компрометация сборочной среды
+    lab: 3
+    initial: tank-1.0.0
+    summary: >-
+      Сборочный агент поставщика заражён и во время сборки меняет программу. Исходный код и тег
+      подлинные, аттестации сборки и подписи пакета действительны. Контрольная пересборка независимым
+      сборщиком даёт другой образ.
+    atlas: [solarwinds-2020, tanstack-2026, xtrader-3cx-2023]
+    attack: [T0862, T1195.002]
+    opo: [ОПО.2]
+    stopped_by: "гейт: s24 опровергнуто (вето); L2: нет квитанции (NO_RECEIPT)"
+    gate: 30
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: true}
+      L1: {accepted: true, reason: OK, process: overflow, alert: true}
+      L2: {accepted: false, reason: NO_RECEIPT, process: normal, alert: false}
+
+  - id: A3b
+    title: Компрометация сборочной среды без контрольной пересборки
+    lab: 3
+    initial: tank-1.0.0
+    summary: >-
+      То же, что A3, но независимой пересборки нет. Все предъявленные свидетельства подтверждаются,
+      опровержений нет, но без контрольной пересборки даже верхняя граница индекса ниже порога: гейт
+      отказывает не по вето, а по индексу, и квитанцию не выдаёт.
+    atlas: [solarwinds-2020]
+    attack: [T0862, T1195.002]
+    opo: [ОПО.2]
+    stopped_by: "гейт: верхняя граница индекса ниже порога (отказ без вето); L2: нет квитанции (NO_RECEIPT)"
+    gate: 30
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: true}
+      L1: {accepted: true, reason: OK, process: overflow, alert: true}
+      L2: {accepted: false, reason: NO_RECEIPT, process: normal, alert: false}
+
+  - id: A4
+    title: Откат на подлинную версию с уязвимостью
+    lab: 4
+    initial: tank-1.1.0
+    summary: >-
+      На устройстве 1.1.0. Нарушитель публикует подлинный выпуск 1.0.0 вместе с его подписью и
+      квитанцией, выданной когда-то для этой версии. В 1.0.0 уставки записываются по Modbus без
+      ограничений: после отката нарушитель поднимает уставки high и hh до 150.
+    atlas: []
+    attack: [T1693.001, T0831]
+    opo: [ОПО.4]
+    stopped_by: "L2: номер версии в квитанции ниже установленного (ROLLBACK)"
+    gate: 0
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: false}
+      L1: {accepted: true, reason: OK, process: overflow, alert: false}
+      L2: {accepted: false, reason: ROLLBACK, process: normal, alert: false}
+
+  - id: A5
+    title: Подлинный выпуск для другого класса устройства
+    lab: 4
+    initial: tank-1.0.0
+    summary: >-
+      Нарушитель публикует в канал ТК-1 подлинный выпуск контроллера насосной станции НС-2 вместе с
+      его подписью и квитанцией. Уставки НС-2 заданы в барах (включить ниже 2, выключить выше 4): на
+      резервуаре насос включается, только когда уровень падает ниже 2 %, и резервуар остаётся пустым.
+    atlas: []
+    attack: [T1693.001]
+    opo: [ОПО.4]
+    stopped_by: "L2: класс устройства в квитанции (TARGET)"
+    gate: 0
+    expected:
+      L0: {accepted: true, reason: OK, process: empty, alert: true}
+      L1: {accepted: true, reason: OK, process: empty, alert: true}
+      L2: {accepted: false, reason: TARGET, process: normal, alert: false}
+
+  - id: A6
+    title: Загрузка логики с подложной инженерной станции
+    lab: 5
+    initial: tank-1.1.0
+    summary: >-
+      Нарушитель загружает вредоносную программу через интерфейс программирования, минуя канал
+      обновления и загрузчик; инженеру подложная станция показывает подлинную программу.
+    atlas: [stuxnet-2010, triton-2017, plc-blaster-2016, rogue7-2019]
+    attack: [T0843, T0889]
+    opo: []
+    stopped_by: "L2: квитанция требуется и для загрузки логики (NO_RECEIPT); L0–L1: монитор обнаруживает недопущенный образ"
+    gate: null
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: true}
+      L1: {accepted: true, reason: OK, process: overflow, alert: true}
+      L2: {accepted: false, reason: NO_RECEIPT, process: normal, alert: false}
+
+  - id: A7
+    title: Выпускной архив не совпадает с тегом
+    lab: 6
+    initial: tank-1.0.0
+    summary: >-
+      Процесс выпуска собирает образ не из тега, а из выпускного архива, в который добавлен файл
+      заводских уставок, которого нет в git. Подписи поставщика действительны.
+    atlas: [xz-utils-2024]
+    attack: [T0862, T1195.002]
+    opo: [ОПО.2]
+    stopped_by: "гейт: s21, s22, s23, s24 опровергнуты (вето); L2: нет квитанции (NO_RECEIPT)"
+    gate: 30
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: true}
+      L1: {accepted: true, reason: OK, process: overflow, alert: true}
+      L2: {accepted: false, reason: NO_RECEIPT, process: normal, alert: false}
+
+  - id: M1
+    title: "Граница метода: скрытая функция производителя"
+    lab: 7
+    initial: tank-1.1.0
+    summary: >-
+      Поставщик сам выпускает 1.2.0 со скрытым «сервисным режимом»: запись 0xBEEF в регистр 100
+      поднимает уставки high и hh до 200 (блокировка по уровню больше не срабатывает) и включает
+      насос. Все свидетельства подтверждаются, гейт допускает выпуск.
+      Статический анализ находку показывает, но свидетельство s13 подтверждает только то, что анализ
+      выполнен.
+    atlas: [contec-cms8000-2025, badbox2-2025]
+    attack: [T0862, T0831]
+    opo: [ОПО.3]
+    stopped_by: "не останавливается: SCII подтверждает происхождение, а не намерения поставщика"
+    gate: 0
+    expected:
+      L0: {accepted: true, reason: OK, process: overflow, alert: false}
+      L1: {accepted: true, reason: OK, process: overflow, alert: false}
+      L2: {accepted: true, reason: OK, process: overflow, alert: false}
+
+  - id: M2
+    title: "Граница метода: команда по каналу управления"
+    lab: 7
+    initial: tank-1.1.0
+    summary: >-
+      Нарушитель подключается к каналу управления с паролем по умолчанию и сбрасывает контроллер к
+      заводскому состоянию. Обновления нет, поэтому ни гейт, ни квитанция не участвуют.
+    atlas: [viasat-ka-sat-2022, li-auto-master-accounts-2025]
+    attack: [T0859, T0813]
+    opo: []
+    stopped_by: "не останавливается: канал управления защищается отдельно"
+    gate: null
+    expected:
+      L0: {accepted: true, reason: OK, process: empty, alert: false}
+      L1: {accepted: true, reason: OK, process: empty, alert: false}
+      L2: {accepted: true, reason: OK, process: empty, alert: false}

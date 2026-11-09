@@ -1,0 +1,32 @@
+title: Controller Stopped or Reset Through Management Channel
+id: 2fcc3d52-bbc5-408f-afd8-3a37eb25cc59
+status: experimental
+description: |
+    Detects a controller accepting a stop or factory-reset command over its management channel. Such commands
+    do not need an update and are outside what the SCII gate and receipts protect; in cps-update-lab a command
+    sent with the default password empties the tank at every protection level (scenario M2). The SIEM still sees
+    the command in the device report.
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.lateral-movement
+    - attack.t0859
+    - attack.impact
+    - attack.t0813
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-mgmt
+        event.outcome: success
+        scii.mgmt.command:
+            - stop
+            - factory-reset
+    condition: selection
+falsepositives:
+    - Maintenance by operators; compare with the maintenance schedule.
+level: medium

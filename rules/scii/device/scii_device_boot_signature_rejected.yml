@@ -1,0 +1,28 @@
+title: Update Image Signature Rejected by Bootloader
+id: 54edd64d-cf2a-4f7f-b59e-3d66de9a5931
+status: experimental
+description: |
+    Detects a device whose bootloader refused an update image because the vendor signature over the image does
+    not verify (BOOT_SIG). The image was modified or replaced after the vendor signed it (scenario A1 of
+    cps-update-lab at protection level L1, where devices check only the vendor signature).
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason: BOOT_SIG
+    condition: selection
+falsepositives:
+    - Releases signed with a new vendor key before devices received it.
+level: high

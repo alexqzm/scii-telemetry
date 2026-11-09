@@ -1,0 +1,2 @@
+sequence by host.name with maxspan=10m 
+ [any where event.dataset:"scii.device" and (event.action:"device-mgmt" and event.reason:"DENIED")]  with runs=3

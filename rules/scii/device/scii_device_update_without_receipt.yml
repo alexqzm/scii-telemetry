@@ -1,0 +1,31 @@
+title: SCII Update Without Admission Receipt
+id: ec67d1f0-1650-43e3-ae2a-5481c07a7eaa
+status: experimental
+description: |
+    Detects a device refusing an image delivered through the update channel without an SCII admission receipt
+    (NO_RECEIPT). The gate issues receipts only for admitted releases, so the image either bypassed the gate or
+    was rejected by it: in cps-update-lab at protection level L2 this happens with a malicious image signed with
+    stolen vendor keys (A2), with builds from a compromised build environment (A3, A3b) and with a release
+    archive that differs from the tag (A7).
+references:
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/device-checks.md
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.t1195.002
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason: NO_RECEIPT
+        scii.device.path: update
+    condition: selection
+falsepositives:
+    - Update servers that publish releases before the gate decision is attached.
+level: high

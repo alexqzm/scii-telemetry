@@ -1,0 +1,1 @@
+from scii-* metadata _id, _index, _version | where event.dataset=="scii.device" and event.action=="device-reject" and event.reason=="BOOT_SIG"

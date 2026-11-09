@@ -1,0 +1,12 @@
+{
+ "device_class": 7001,
+ "gate_pk": "6b38069e7eb71c1dcce2c5f8168e995eacb2d8d730b7bc293aca6207c03f87f3",
+ "instance": "00000000000000000000000000000000",
+ "key_epoch_hi": 4294967295,
+ "key_epoch_lo": 1,
+ "level": 1,
+ "mgmt_password": "admin",
+ "name": "plc-A1-L1",
+ "policy_digest": "a4e679a6fa311dc041b2fd5f09fcbc043b780aa4b6340f09428f29dc0d551e8a",
+ "vendor_boot_pk": "39b37b7927ff632567de24cbdb2f09a350c4e2fe4d9e56a8661d611a8febd93a"
+}

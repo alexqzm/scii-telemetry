@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "Если вы используете эту телеметрию, правила или наборы событий, сошлитесь на них так."
+title: "scii-telemetry: телеметрия гейта SCII и устройств киберфизических систем для SIEM"
+type: software
+version: 0.1.0
+license: Apache-2.0
+repository-code: "https://github.com/alexqzm/scii-telemetry"
+authors:
+  - family-names: Kuzmin
+    given-names: Alexander
+    orcid: "https://orcid.org/0000-0002-0393-412X"
+keywords:
+  - SIEM
+  - Sigma
+  - detection engineering
+  - cyber-physical systems
+  - ICS
+  - firmware update
+  - software supply chain
+  - ECS
+  - OpenSearch
+  - Elasticsearch
+  - evidence graph
+references:
+  - type: software
+    title: "scii-gate: гейт допуска обновлений ПО киберфизических систем по графу доказательств"
+    doi: 10.5281/zenodo.23833592
+    repository-code: "https://github.com/alexqzm/scii-gate"
+    authors:
+      - family-names: Kuzmin
+        given-names: Alexander
+        orcid: "https://orcid.org/0000-0002-0393-412X"
+  - type: software
+    title: "scii-verify: проверка квитанции допуска SCII на устройстве КФС"
+    repository-code: "https://github.com/alexqzm/scii-verify"
+    authors:
+      - family-names: Kuzmin
+        given-names: Alexander
+        orcid: "https://orcid.org/0000-0002-0393-412X"
+  - type: software
+    title: "cps-update-lab: учебный стенд по целостности обновления ПО КФС"
+    repository-code: "https://github.com/alexqzm/cps-update-lab"
+    authors:
+      - family-names: Kuzmin
+        given-names: Alexander
+        orcid: "https://orcid.org/0000-0002-0393-412X"
+  - type: software
+    title: "pySigma"
+    repository-code: "https://github.com/SigmaHQ/pySigma"
+    authors:
+      - name: "SigmaHQ"

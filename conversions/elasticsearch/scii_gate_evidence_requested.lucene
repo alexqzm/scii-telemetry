@@ -1,0 +1,1 @@
+event.dataset:scii.gate AND (event.action:gate\-decision AND scii.gate.code:20)

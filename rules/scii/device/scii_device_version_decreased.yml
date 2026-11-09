@@ -1,0 +1,32 @@
+title: Device Installed an Older Firmware Version
+id: b95e7938-a51f-4348-ab7f-d636951c7813
+status: experimental
+description: |
+    Detects a device that installed an image with a lower security version number than the image it ran before.
+    The exporter derives scii.device.svn_change from consecutive reports of the same device. A rollback to an
+    older but once admitted release passes the reconciliation with the gate log, because that image is in the
+    log; this rule catches it on devices that do not enforce anti-rollback (scenario A4 of cps-update-lab at
+    protection levels L0 and L1, which the lab monitor does not flag).
+references:
+    - https://github.com/alexqzm/cps-update-lab
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/receipt-format.md
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.defense-impairment
+    - attack.t1689
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 enriched by the exporter (scii.device.svn_change)'
+detection:
+    selection:
+        event.action: device-install
+        event.outcome: success
+        scii.device.svn_change: decrease
+    condition: selection
+falsepositives:
+    - Planned downgrades approved by the operator.
+level: high

@@ -1,0 +1,30 @@
+title: SCII Program Download From Engineering Workstation Without Receipt
+id: 64775e7d-125a-4bd6-a75f-03226255ea65
+status: experimental
+description: |
+    Detects a controller refusing a program downloaded from an engineering workstation without an SCII admission
+    receipt (NO_RECEIPT on the ews path). Program download bypasses the bootloader and its signature check; a
+    controller that requires receipts on this path stops a rogue engineering workstation (scenario A6 of
+    cps-update-lab at protection level L2).
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.lateral-movement
+    - attack.t0843
+    - attack.persistence
+    - attack.t0889
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason: NO_RECEIPT
+        scii.device.path: ews
+    condition: selection
+falsepositives:
+    - Engineers downloading test programs to controllers that enforce receipts, outside a maintenance procedure.
+level: high

@@ -1,0 +1,30 @@
+title: SCII Gate Veto on a Release
+id: de72dad8-b95b-4157-a312-6662fe83d84f
+status: experimental
+description: |
+    Detects a gate decision with a veto: evidence of a mandatory stage was refuted, for example build provenance
+    pointing to another source or signed by a key outside the builder role. A veto blocks the release whatever
+    the integrity index, and it means that the supply chain contradicts the recipient's policy, not merely that
+    evidence is missing. In cps-update-lab the gate vetoes the build from a compromised build environment, the
+    release archive that differs from the tag and the image signed with stolen vendor keys.
+references:
+    - https://github.com/alexqzm/scii-gate
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.t1195.002
+logsource:
+    product: scii
+    service: gate
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: gate-decision
+        scii.gate.veto: true
+    condition: selection
+falsepositives:
+    - Trust anchors not updated after a planned key change of the vendor; the genuine release is vetoed until the policy is updated.
+level: high

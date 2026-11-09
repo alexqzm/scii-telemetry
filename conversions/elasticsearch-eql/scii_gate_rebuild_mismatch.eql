@@ -1,0 +1,1 @@
+any where event.dataset:"scii.gate" and (event.action:"gate-evidence" and scii.evidence.id:"s24" and scii.evidence.state:"refuted")

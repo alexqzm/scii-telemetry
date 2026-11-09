@@ -1,0 +1,28 @@
+title: SCII Device Report With Invalid Signature
+id: 3c83c73c-f044-4ac3-9c72-6165096f3775
+status: experimental
+description: |
+    Detects a device report whose signature does not verify with the device key. Reports are signed by the
+    device so that the update server and the SIEM can trust the installed version and the outcome of each
+    attempt; a report that fails verification was forged or altered in transit, possibly to hide an
+    installation. In case C8 of this repository a report is altered to name an admitted image instead of the
+    malicious one the device installed: reconciliation with the gate log no longer flags it, this rule does.
+references:
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/device-checks.md
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.evasion
+    - attack.t1692.002
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 enriched by the exporter (scii.report.signature)'
+detection:
+    selection:
+        scii.report.signature: invalid
+    condition: selection
+falsepositives:
+    - Device key rotation not yet reflected in the exporter's key store.
+level: high

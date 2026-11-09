@@ -1,0 +1,41 @@
+{
+  "description": "События 33 прогонов стенда cps-update-lab (11 сценариев × 3 уровня защиты) и 8 решений гейта, выгруженные scii-telemetry",
+  "generated": "2026-11-09",
+  "lab": {
+    "repository": "https://github.com/alexqzm/cps-update-lab",
+    "commit": "2d22f9c55e67f888969d89fce5eea36ae5f7ee5d",
+    "version": "0.1.0",
+    "command": "cpslab --home <каталог> scenario matrix",
+    "matrix_check": "совпали с ожидаемыми: 33 из 33 исходов",
+    "profile": "cpslab/data/profile.json"
+  },
+  "tools": {
+    "scii-gate": {
+      "repository": "https://github.com/alexqzm/scii-gate",
+      "commit": "d210811f27a9b9302f018faf7f019d38dfbb9227",
+      "version": "0.1.5"
+    },
+    "scii-agent": {
+      "repository": "https://github.com/alexqzm/scii-verify",
+      "commit": "1c4ac0ffbc5278c493db8a3ed8eae5cf8eef85e3"
+    },
+    "cosign": "v2.4.1",
+    "gpg": "2.4.4",
+    "git": "2.43.0",
+    "python": "3.13.18"
+  },
+  "export_command": "python -m sciitel export --lab-home <каталог> --profile <cps-update-lab>/cpslab/data/profile.json --out dataset/cpslab-0.1.0/events.jsonl --provenance dataset/cpslab-0.1.0/provenance.json",
+  "volatile_fields": [
+    "@timestamp",
+    "scii.evidence.reason"
+  ],
+  "reproducibility": "Второй независимый прогон стенда дал тот же набор без изменчивых полей (python -m sciitel compare); CI пересобирает набор из закреплённого коммита стенда и сравнивает так же.",
+  "exporter": "scii-telemetry 0.1.0",
+  "schema": "1",
+  "events": 210,
+  "datasets": {
+    "scii.gate": 144,
+    "scii.device": 66
+  },
+  "raw": "raw/ — выходы стенда, из которых выгружен набор: журнал и отчёты гейта, отчёты, открытые ключи и конфигурация устройств (закрытые ключи не включены), профиль политики и каталог сценариев стенда; python -m sciitel export --lab-home raw --profile raw/profile.json воспроизводит events.jsonl побайтно"
+}

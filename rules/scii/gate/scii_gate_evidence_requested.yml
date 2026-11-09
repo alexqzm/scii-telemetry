@@ -1,0 +1,27 @@
+title: SCII Gate Requested Missing Evidence
+id: 950d1ec0-2aa6-41f2-9b26-34b3bbd447c5
+status: experimental
+description: |
+    Detects a gate decision to request evidence (code 20): a mandatory kind of evidence was not delivered. The
+    release is not admitted until the vendor supplies it; a release published around the regular pipeline,
+    without build provenance, ends here. In case C9 of this repository the cps-update-lab gate requests
+    evidence for release 1.1.0 delivered without its SLSA provenance attestation (s22).
+references:
+    - https://github.com/alexqzm/scii-gate
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+logsource:
+    product: scii
+    service: gate
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: gate-decision
+        scii.gate.code: 20
+    condition: selection
+falsepositives:
+    - Vendors that deliver evidence after the release; a later admission of the same image closes the case.
+level: low

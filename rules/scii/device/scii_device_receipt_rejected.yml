@@ -1,0 +1,37 @@
+title: SCII Admission Receipt Rejected by Device
+id: b910d7be-a47a-425d-9c53-f5ce4e52cd02
+status: experimental
+description: |
+    Detects a device refusing an update because its SCII admission receipt is invalid: the receipt does not
+    parse (FORMAT), is signed by a key outside the device keyring or epoch (KEY), has a signature that does not
+    verify (SIGNATURE), belongs to another policy or an outdated epoch (POLICY), or records a gate decision
+    other than admission (DECISION). These checks decide whether the receipt is genuine and meant for this
+    policy, so the refusal points to a forged or foreign receipt, or to a misconfigured fleet. Cases C1-C5 of
+    this repository reproduce each reason on a cps-update-lab device that checks receipts with scii-agent.
+references:
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/device-checks.md
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/receipt-format.md
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason:
+            - FORMAT
+            - KEY
+            - SIGNATURE
+            - POLICY
+            - DECISION
+    condition: selection
+falsepositives:
+    - Devices provisioned with an outdated gate key or policy digest after a planned key or policy change.
+level: high

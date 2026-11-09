@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/alexqzm/scii-telemetry/schema/scii-event.schema.json",
+  "title": "Событие телеметрии гейта SCII и устройства КФС, схема 1",
+  "description": "Поля ECS там, где есть подходящие (@timestamp, event.*, host.name, file.hash.sha256, package.*, observer.*, labels), и расширение scii.* для решений гейта, свидетельств и отчётов устройств.",
+  "type": "object",
+  "required": ["@timestamp", "event", "scii"],
+  "properties": {
+    "@timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"},
+    "event": {
+      "type": "object",
+      "required": ["id", "kind", "module", "dataset", "category", "type", "action", "outcome"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"const": "event"},
+        "module": {"const": "scii"},
+        "dataset": {"enum": ["scii.gate", "scii.device"]},
+        "category": {"type": "array", "items": {"enum": ["package", "configuration"]}, "minItems": 1},
+        "type": {"type": "array", "items": {"enum": ["info", "installation", "change"]}, "minItems": 1},
+        "action": {"enum": ["gate-decision", "gate-evidence", "device-factory", "device-install", "device-reject", "device-mgmt"]},
+        "outcome": {"enum": ["success", "failure"]},
+        "reason": {"type": "string"},
+        "sequence": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "host": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {"name": {"type": "string", "minLength": 1}},
+      "additionalProperties": false
+    },
+    "file": {
+      "type": "object",
+      "required": ["hash"],
+      "properties": {
+        "hash": {
+          "type": "object",
+          "required": ["sha256"],
+          "properties": {"sha256": {"$ref": "#/$defs/sha256"}},
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "package": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {"name": {"type": "string"}, "version": {"type": ["string", "null"]}},
+      "additionalProperties": false
+    },
+    "observer": {
+      "type": "object",
+      "required": ["vendor", "product"],
+      "properties": {
+        "vendor": {"const": "SCII"},
+        "product": {"enum": ["scii-gate", "device-report"]},
+        "version": {"type": ["string", "null"]},
+        "name": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "labels": {
+      "description": "Метки стенда cps-update-lab: прогон, сценарий, уровень защиты. В эксплуатации их нет.",
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "scii": {
+      "type": "object",
+      "required": ["schema"],
+      "properties": {
+        "schema": {"const": "1"},
+        "gate": {"$ref": "#/$defs/gate"},
+        "evidence": {"$ref": "#/$defs/evidence"},
+        "device": {"$ref": "#/$defs/device"},
+        "report": {
+          "type": "object",
+          "required": ["signature"],
+          "properties": {"signature": {"enum": ["valid", "invalid"]}},
+          "additionalProperties": false
+        },
+        "reconcile": {
+          "type": "object",
+          "required": ["admitted"],
+          "properties": {"admitted": {"type": "boolean"}},
+          "additionalProperties": false
+        },
+        "mgmt": {
+          "type": "object",
+          "required": ["command"],
+          "properties": {"command": {"type": ["string", "null"]}},
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {"properties": {"event": {"properties": {"action": {"const": "gate-decision"}}}}},
+      "then": {
+        "required": ["file", "package", "observer"],
+        "properties": {
+          "event": {"required": ["reason"], "properties": {"reason": {"enum": ["admit", "review", "request", "reject"]}}},
+          "scii": {"required": ["gate"], "properties": {"gate": {"required": ["code", "decision", "veto", "complete", "r_min", "r_max", "theta"]}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"event": {"properties": {"action": {"const": "gate-evidence"}}}}},
+      "then": {"required": ["file", "package", "observer"], "properties": {"scii": {"required": ["gate", "evidence"]}}}
+    },
+    {
+      "if": {"properties": {"event": {"properties": {"dataset": {"const": "scii.device"}}}}},
+      "then": {
+        "required": ["host", "observer"],
+        "properties": {
+          "event": {"required": ["reason", "sequence"], "properties": {"reason": {"$ref": "#/$defs/reason"}}},
+          "scii": {"required": ["device", "report"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"event": {"properties": {"action": {"const": "device-mgmt"}}}}},
+      "then": {"properties": {"scii": {"required": ["mgmt"]}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reason": {
+      "description": "Коды причин: OK; коды отказа квитанции SCII-R (scii-verify) и кодов стенда.",
+      "enum": ["OK", "NO_UPDATE", "IMAGE_FORMAT", "BOOT_SIG", "DENIED", "UNKNOWN_COMMAND", "NO_RECEIPT", "FORMAT",
+               "KEY", "SIGNATURE", "DECISION", "TARGET", "POLICY", "ROLLBACK", "SIZE", "DIGEST", "STATE"]
+    },
+    "gate": {
+      "type": "object",
+      "required": ["serial", "device_class"],
+      "properties": {
+        "serial": {"type": "integer", "minimum": 1},
+        "variant": {"type": ["string", "null"]},
+        "device_class": {"type": "integer"},
+        "code": {"enum": [0, 10, 20, 30]},
+        "decision": {"enum": ["admit", "review", "request", "reject"]},
+        "veto": {"type": ["boolean", "null"]},
+        "complete": {"type": "boolean"},
+        "r_min": {"type": "number", "minimum": 0, "maximum": 1},
+        "r_max": {"type": "number", "minimum": 0, "maximum": 1},
+        "theta": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["id", "name", "stage", "stage_name", "mandatory", "stage_mandatory", "state", "reason"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^s[0-9]{2}$"},
+        "name": {"type": "string"},
+        "stage": {"type": "string", "pattern": "^v[0-9]+$"},
+        "stage_name": {"type": "string"},
+        "mandatory": {"type": "boolean"},
+        "stage_mandatory": {"type": "boolean"},
+        "state": {"enum": ["confirmed", "missing", "refuted"]},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "device": {
+      "type": "object",
+      "required": ["class", "instance", "level", "enforcement", "path", "installed"],
+      "properties": {
+        "class": {"type": "integer"},
+        "instance": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+        "level": {"enum": [0, 1, 2]},
+        "enforcement": {"enum": ["none", "vendor_signature", "scii_receipt"]},
+        "path": {"enum": ["factory", "update", "ews", "mgmt"]},
+        "installed": {
+          "type": "object",
+          "properties": {
+            "sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+            "version": {"type": ["string", "null"]},
+            "svn": {"type": ["integer", "null"], "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "svn_previous": {"type": "integer", "minimum": 0},
+        "svn_change": {"enum": ["increase", "same", "decrease"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,49 @@
+title: SCII Controller Management Password Failure (Correlation Base)
+id: 8dd2e754-4210-428a-8597-85960eebafb4
+name: scii_base_mgmt_denied
+status: experimental
+description: Base rule of the correlation in this file. A management command refused because of a wrong password.
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-mgmt
+        event.reason: DENIED
+    condition: selection
+falsepositives:
+    - Base rule, not intended to alert on its own.
+level: informational
+---
+title: Repeated Management Password Failures on a Controller
+id: e1dc9dfc-ff7d-4e0e-93d4-97f818a6a4f6
+status: experimental
+description: |
+    Detects three or more management commands refused for a wrong password on the same controller within ten
+    minutes: password guessing on the management channel, which SCII does not protect. In scenario M2 of
+    cps-update-lab a command with the default password stops the process at every protection level; case C7 of
+    this repository guesses three wrong passwords before it.
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.credential-access
+    - attack.t1110
+correlation:
+    type: event_count
+    rules:
+        - scii_base_mgmt_denied
+    group-by:
+        - host.name
+    timespan: 10m
+    condition:
+        gte: 3
+falsepositives:
+    - Operators mistyping a changed password.
+level: medium

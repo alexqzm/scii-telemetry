@@ -1,0 +1,1 @@
+event.dataset="scii.device" event.action="device-mgmt" event.outcome="success" scii.mgmt.command IN ("stop", "factory-reset")

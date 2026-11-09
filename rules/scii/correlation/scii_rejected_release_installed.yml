@@ -1,0 +1,75 @@
+title: SCII Gate Rejected a Release (Correlation Base)
+id: 4174ed1a-0d2c-435d-9818-4b15f22de625
+name: scii_base_gate_rejected
+status: experimental
+description: Base rule of the correlation in this file. A gate decision to reject a release.
+references:
+    - https://github.com/alexqzm/scii-gate
+author: Alexander Kuzmin
+date: 2026-11-09
+logsource:
+    product: scii
+    service: gate
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: gate-decision
+        scii.gate.code: 30
+    condition: selection
+falsepositives:
+    - Base rule, not intended to alert on its own.
+level: informational
+---
+title: Device Installed an Image (Correlation Base)
+id: b17afff2-b5a8-42cb-9df7-0f3b26159aa0
+name: scii_base_device_installed
+status: experimental
+description: Base rule of the correlation in this file. A successful installation of an image on a device.
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-install
+        event.outcome: success
+    condition: selection
+falsepositives:
+    - Base rule, not intended to alert on its own.
+level: informational
+---
+title: Release Rejected by SCII Gate Installed on a Device
+id: cfa837b9-71df-4bb8-85c1-b088a986e98a
+status: experimental
+description: |
+    Detects an image that the SCII gate rejected and that a device then installed: the gate decision and the
+    installation report carry the same image SHA-256 within 30 days. The gate decided correctly, but the
+    decision did not reach the device, either because the device does not check receipts or because the image
+    came by another path. In cps-update-lab this happens at protection levels L0 and L1 with images signed with
+    stolen keys, builds from a compromised build environment and the release archive that differs from the tag.
+    The lab uses the same malicious image for the replacement on the update server and for the rogue
+    engineering workstation, so those scenarios match as well. The 30-day window is a parameter of the rule.
+references:
+    - https://github.com/alexqzm/scii-gate
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.t1195.002
+correlation:
+    type: temporal_ordered
+    rules:
+        - scii_base_gate_rejected
+        - scii_base_device_installed
+    group-by:
+        - file.hash.sha256
+    timespan: 30d
+falsepositives:
+    - A release rejected for missing evidence and admitted later under the same image; check for a later admission.
+level: critical

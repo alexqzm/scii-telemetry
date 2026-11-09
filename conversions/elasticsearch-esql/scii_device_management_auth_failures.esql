@@ -1,0 +1,3 @@
+from scii-* metadata _id, _index, _version | where event.dataset=="scii.device" and event.action=="device-mgmt" and event.reason=="DENIED"
+| eval timebucket=date_trunc(10minutes, @timestamp) | stats event_count=count() by timebucket, host.name
+| where event_count >= 3

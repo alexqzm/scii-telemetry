@@ -1,0 +1,1 @@
+any where event.dataset:"scii.device" and (event.action:"device-mgmt" and event.outcome:"success" and (scii.mgmt.command like~ ("stop", "factory-reset")))

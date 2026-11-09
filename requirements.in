@@ -1,0 +1,10 @@
+pySigma==1.5.1
+pySigma-backend-sqlite==1.2.4
+pySigma-backend-elasticsearch==2.1.1
+pySigma-backend-opensearch==2.0.3
+pysigma-backend-splunk==2.1.0
+sigma-cli==3.1.0
+cryptography
+jsonschema
+pytest
+pyflakes

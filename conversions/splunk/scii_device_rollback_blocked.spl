@@ -1,0 +1,1 @@
+event.dataset="scii.device" event.action="device-reject" event.reason="ROLLBACK"

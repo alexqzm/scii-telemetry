@@ -1,0 +1,32 @@
+title: SCII Release Source Signatures Refuted
+id: 5e5fc333-75bd-4cc5-a485-3c9438f18453
+status: experimental
+description: |
+    Detects refuted evidence about the release source: commit signatures (s11) or the signed release tag (s14)
+    do not verify with trusted keys, or the commit is not the one the tag points to. In cps-update-lab both are
+    refuted for the malicious image signed with stolen vendor keys: the package signature is valid, but the
+    source of the release is not the vendor's.
+references:
+    - https://github.com/alexqzm/scii-gate
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t1195.002
+    - attack.t0862
+logsource:
+    product: scii
+    service: gate
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: gate-evidence
+        scii.evidence.id:
+            - s11
+            - s14
+        scii.evidence.state: refuted
+    condition: selection
+falsepositives:
+    - Developer or release keys rotated without updating the trust anchors of the policy.
+level: high

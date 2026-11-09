@@ -1,0 +1,6 @@
+event.dataset="scii.device" event.action="device-mgmt" event.reason="DENIED"
+
+| bin _time span=10m
+| stats count as event_count by _time host.name
+
+| search event_count >= 3

@@ -1,0 +1,1 @@
+event.dataset:scii.device AND (event.action:device\-reject AND event.reason:NO_RECEIPT AND scii.device.path:ews)

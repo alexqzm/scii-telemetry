@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  ATTACK_BASE: https://raw.githubusercontent.com/mitre-attack/attack-stix-data/a8db2f52eb933c9c99060c123e088b3326d3a607
+  ATTACK_ENTERPRISE_SHA256: 539a843a7b53ed9749740b2123dddae3726b1a4831841c32aca740b011b910b5
+  ATTACK_ICS_SHA256: 3f6448369f9135ade84ff6437479441530d0b262f910dca991879a7146b524ff
+  LAB_COMMIT: 2d22f9c55e67f888969d89fce5eea36ae5f7ee5d
+  SCII_GATE_COMMIT: d210811f27a9b9302f018faf7f019d38dfbb9227
+  SCII_VERIFY_REV: 1c4ac0ffbc5278c493db8a3ed8eae5cf8eef85e3
+  RUST_TOOLCHAIN: 1.97.0
+  COSIGN_VERSION: v2.4.1
+  COSIGN_SHA256: 8b24b946dd5809c6bd93de08033bcf6bc0ed7d336b7785787c080f574b89249b
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Установка (версии и хеши закреплены)
+        run: python -m pip install --require-hashes -r requirements.txt
+      - name: MITRE ATT&CK 20.1, Enterprise и ICS (SHA-256 закреплены)
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/enterprise.json" "$ATTACK_BASE/enterprise-attack/enterprise-attack-20.1.json"
+          curl -sSfL -o "$RUNNER_TEMP/ics.json" "$ATTACK_BASE/ics-attack/ics-attack-20.1.json"
+          echo "$ATTACK_ENTERPRISE_SHA256  $RUNNER_TEMP/enterprise.json" | sha256sum -c -
+          echo "$ATTACK_ICS_SHA256  $RUNNER_TEMP/ics.json" | sha256sum -c -
+      - name: Статический анализ
+        run: python -m pyflakes sciitel tools tests labcases
+      - name: Валидаторы pySigma, поля по схеме событий, тактики ATT&CK
+        run: python -m tools.check --attack-enterprise "$RUNNER_TEMP/enterprise.json" --attack-ics "$RUNNER_TEMP/ics.json"
+      - name: Тесты (схема, выгрузка, матрица и её сверка со стендом, мутации, семантика корреляций)
+        run: python -m pytest -q
+      - name: Наборы соответствуют схеме
+        run: python -m sciitel validate dataset/*/events.jsonl
+      - name: Запросы совпадают с правилами
+        run: python -m tools.convert --check
+      - name: Матрица, таблицы docs/ и README совпадают с правилами и наборами
+        run: python -m tools.matrix --check
+
+  siem:
+    runs-on: ubuntu-24.04
+    services:
+      opensearch:
+        image: opensearchproject/opensearch:3.8.0@sha256:fafe3fc3587088674669235575aa166228c48bdb940294a8cdbbc1da75236a40
+        env:
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: "true"
+          DISABLE_INSTALL_DEMO_CONFIG: "true"
+          cluster.routing.allocation.disk.threshold_enabled: "false"
+          OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -fsS http://localhost:9200/_cluster/health"
+          --health-interval 10s --health-timeout 5s --health-retries 30
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.5.5@sha256:13b4a40bb095774f5fda635e45fd5677cc6a26565e42b24997b0c72b88e75984
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+          cluster.routing.allocation.disk.threshold_enabled: "false"
+          ES_JAVA_OPTS: -Xms1g -Xmx1g
+        ports:
+          - 9201:9200
+        options: >-
+          --health-cmd "curl -fsS http://localhost:9200/_cluster/health"
+          --health-interval 10s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Установка (версии и хеши закреплены)
+        run: python -m pip install --require-hashes -r requirements.txt
+      - name: Запросы в OpenSearch 3.8.0
+        run: |
+          echo "## Запросы из conversions/ в движках SIEM" >> "$GITHUB_STEP_SUMMARY"
+          python -m tools.siem_it --engine opensearch --url http://localhost:9200 --report "$GITHUB_STEP_SUMMARY"
+      - name: Запросы в Elasticsearch 9.5.5 (Lucene, EQL, ES|QL)
+        run: python -m tools.siem_it --engine elasticsearch --url http://localhost:9201 --report "$GITHUB_STEP_SUMMARY"
+
+  lab:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Установка (версии и хеши закреплены)
+        run: python -m pip install --require-hashes -r requirements.txt
+      - name: cosign (SHA-256 закреплён)
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -sSfL -o "$RUNNER_TEMP/bin/cosign" \
+            "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64"
+          echo "${COSIGN_SHA256}  $RUNNER_TEMP/bin/cosign" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/bin/cosign"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: scii-agent из scii-verify (коммит закреплён)
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          cargo "+$RUST_TOOLCHAIN" install --locked --root "$RUNNER_TEMP" \
+            --git https://github.com/alexqzm/scii-verify --rev "$SCII_VERIFY_REV" scii-agent
+      - name: cps-update-lab и scii-gate (коммиты закреплены)
+        run: |
+          git clone -q https://github.com/alexqzm/cps-update-lab "$RUNNER_TEMP/cps-update-lab"
+          git -C "$RUNNER_TEMP/cps-update-lab" checkout -q "$LAB_COMMIT"
+          git clone -q https://github.com/alexqzm/scii-gate "$RUNNER_TEMP/scii-gate"
+          git -C "$RUNNER_TEMP/scii-gate" checkout -q "$SCII_GATE_COMMIT"
+          echo "PYTHONPATH=$RUNNER_TEMP/cps-update-lab:$RUNNER_TEMP/scii-gate" >> "$GITHUB_ENV"
+      - name: Сценарии стенда, 11 × 3 уровня (исходы сверяются с каталогом стенда)
+        run: python -m cpslab --home "$RUNNER_TEMP/lab" scenario matrix
+      - name: Дополнительные случаи C1–C9 на копии каталога стенда
+        run: |
+          cp -a "$RUNNER_TEMP/lab" "$RUNNER_TEMP/cases"
+          python labcases/cases.py --home "$RUNNER_TEMP/cases"
+      - name: Свежая выгрузка совпадает с наборами dataset/ без изменчивых полей
+        run: |
+          for pair in cpslab:lab cases:cases; do
+            name="${pair%%:*}"
+            home="${pair##*:}"
+            python -m sciitel export --lab-home "$RUNNER_TEMP/$home" \
+              --profile "$RUNNER_TEMP/cps-update-lab/cpslab/data/profile.json" --out "$RUNNER_TEMP/$name.jsonl"
+            python -m sciitel compare "$RUNNER_TEMP/$name.jsonl" "dataset/$name-0.1.0/events.jsonl"
+          done
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: actionlint 1.7.12 (SHA-256 закреплён)
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/actionlint.tar.gz" \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color

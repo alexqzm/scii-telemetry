@@ -1,0 +1,1 @@
+event.dataset:scii.gate AND (event.action:gate\-evidence AND scii.evidence.id:s24 AND scii.evidence.state:refuted)

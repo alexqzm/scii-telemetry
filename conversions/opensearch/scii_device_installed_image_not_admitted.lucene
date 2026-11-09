@@ -1,0 +1,1 @@
+event.dataset:scii.device AND (event.action:device\-install AND event.outcome:success AND scii.reconcile.admitted:false)

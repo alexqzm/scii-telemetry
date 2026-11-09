@@ -1,0 +1,29 @@
+title: SCII Device Anti-Rollback State Missing or Corrupted
+id: bf378f6b-06b0-43d1-961b-0f446a3a30cf
+status: experimental
+description: |
+    Detects a device that refused an update because it has no valid copy of its anti-rollback state (STATE):
+    after commissioning no copy passes the integrity check. Without the state the device cannot compare version
+    numbers and policy epochs, so it refuses the update. The state lives outside the area the bootloader erases;
+    its loss points to tampering with device flash or to hardware failure. cps-update-lab does not reproduce
+    this refusal (its device passes the state to scii-agent as arguments); the rule is tested on a synthetic
+    event.
+references:
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/device-checks.md
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason: STATE
+    condition: selection
+falsepositives:
+    - Flash wear or power loss during a state write on hardware without the dual-copy scheme.
+level: high

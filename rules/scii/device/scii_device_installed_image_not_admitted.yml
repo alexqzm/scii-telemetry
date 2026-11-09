@@ -1,0 +1,31 @@
+title: Device Installed an Image Not Admitted by SCII Gate
+id: ea63db62-4cab-4f67-bf9b-73b2d5ff7cba
+status: experimental
+description: |
+    Detects a device that installed an image whose SHA-256 the gate never admitted for that device class. The
+    exporter sets scii.reconcile.admitted by reconciling the installed image with the gate decision log, as the
+    cps-update-lab monitor does. This is what remains visible on devices that do not check receipts (protection
+    levels L0 and L1): replaced images, builds signed with stolen keys, compromised builds, programs from a rogue
+    engineering workstation and releases for other hardware are installed, but the reconciliation flags them.
+references:
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 enriched by the exporter (scii.reconcile.admitted)'
+detection:
+    selection:
+        event.action: device-install
+        event.outcome: success
+        scii.reconcile.admitted: false
+    condition: selection
+falsepositives:
+    - Releases installed before their gate decision reached the log the exporter reconciles with.
+level: high

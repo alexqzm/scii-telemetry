@@ -1,0 +1,33 @@
+title: SCII Update Image Does Not Match Its Receipt
+id: cdb4bfa0-6caf-412a-8445-a2d7893b8072
+status: experimental
+description: |
+    Detects a device refusing an update because the image length (SIZE) or digest (DIGEST) differs from the
+    values in a validly signed SCII admission receipt. The receipt belongs to an admitted release while the
+    image is something else: the image was replaced or modified after the gate's decision, for example on the
+    update server (DIGEST in scenario A1 of cps-update-lab at protection level L2; SIZE in case C6 of this
+    repository, an image one byte shorter than the receipt states).
+references:
+    - https://github.com/alexqzm/scii-verify/blob/main/docs/device-checks.md
+    - https://github.com/alexqzm/cps-update-lab
+author: Alexander Kuzmin
+date: 2026-11-09
+tags:
+    - attack.initial-access
+    - attack.t0862
+    - attack.persistence
+    - attack.t1693.001
+logsource:
+    product: scii
+    service: device
+    definition: 'Requirements: SCII telemetry in schema 1 (schema/scii-event.schema.json), e.g. python -m sciitel export'
+detection:
+    selection:
+        event.action: device-reject
+        event.reason:
+            - DIGEST
+            - SIZE
+    condition: selection
+falsepositives:
+    - Corrupted downloads; a retry that succeeds right after points to a transport error rather than tampering.
+level: high
