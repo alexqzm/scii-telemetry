@@ -1,0 +1,57 @@
+{
+  "description": "Решения гейта SCII по 16 сценариям программы испытаний стенда ArduPilot (Copter-4.5.7, плата CubeOrange), официальный прогон 30.10.2026, выгруженные scii-telemetry",
+  "generated": "2026-11-11",
+  "testbed": {
+    "repository": "https://github.com/alexqzm/scii-gate",
+    "commit": "d210811f27a9b9302f018faf7f019d38dfbb9227",
+    "version": "0.1.5",
+    "run": {
+      "started": "2026-10-30T12:36:45Z",
+      "finished": "2026-10-30T12:36:53Z",
+      "scii_gate": "0.1.0",
+      "python": "3.11.15",
+      "cosign": "v2.4.1",
+      "gpg": "2.4.4",
+      "theta": 0.496,
+      "scenarios": 16
+    },
+    "plan": "testbed/plan.json: ожидаемые состояния и решения, вычисленные моделью по замыслу сценариев; SHA-256 плана, профиля и политик записан в docs/PMI.sha256 до прогона",
+    "bundles": "data/bundles/<сценарий>: пакет package/arducopter.apj и предъявленные свидетельства; packages.json прочитан из пакетов функциями scii.checks (apj_image, parse_fwversion)",
+    "files_sha256": {
+      "results/results.json": "91b2b28f4642e3b2c552e9a4edc38dd4fdb9a84b9c66d08e46955267986d4b08",
+      "testbed/plan.json": "d5983f128c8d5181843abeca2bc3ff2760ee90a7350f92ec353c9aeb294c58a3",
+      "profiles/ardupilot_cubeorange.json": "9e6730d195d4d91bb6714ab983777716b9be17a7c9d05483ade32abb67e5d538",
+      "docs/PMI.sha256": "62d1bffed31adcdedf43029e3860352758782cb4427747e1a87e69be2e901f66",
+      "results/reports/O1.json": "d8be5b5b8ad664a2a93255c1d93ccea45684a46a5b23a3ffaff4222abbc4e13b",
+      "results/reports/O2.json": "2ed0cdd6b60aa280f607e9365ca1e2a3e65aa6b46fdc5c91efbf31a966f40da9",
+      "results/reports/B1.json": "25c37d3fb388eef3deda8f487727d17ab4e92e103f6a36b38b9aff5b3daaca50",
+      "results/reports/B2.json": "dd0d05205edc9e9c1de4b3a76006efc77c4d76666bfbf8f6d581e552e7ef699a",
+      "results/reports/B3.json": "bb7cff52230c22c6d3969973103fbb1f17ae38cdc03580549e3ef3a2e7de504c",
+      "results/reports/B5a.json": "bb29683889533ef19b261b2c7775e31d4b5d4a1b83a509766996c0b1c1ac107b",
+      "results/reports/B5b.json": "56ad8af3a5bacfe39d3f90b6de5d8c203421774385b5c8d030479ec1d4274e9a",
+      "results/reports/A1a.json": "84196dfa666c4515da0bc9262df980f8f67142f26bfa0368d1c0bc875f27e989",
+      "results/reports/A1b.json": "d7a32dd3093edffe257a1d4c9886714366656aec7ba60d65e01076a4060d4574",
+      "results/reports/A2.json": "8c345f8b04297157e89c5e9ef83e24102b2405b47cefcf127d56dca816403463",
+      "results/reports/A3.json": "4d7bfa5662e9a6897dfaae04275fb984fd33832662d46e2e9504d7d2b653efef",
+      "results/reports/A4.json": "26776f95beb36e705469d36ac7fc2322f5f1268c3e6dd8be2301f19005a967f4",
+      "results/reports/A5a.json": "9ee0994fc0fe2717901cf3179995ffdc20c5d331c0aadb9afcda23c1cdbc3c75",
+      "results/reports/A5b.json": "1616e98ed18a948899e4598830dcc022aac40c92f5b310ea03173ccac8ae294a",
+      "results/reports/A6.json": "c7e0d5a74cae5cdb2f5928c0e0ebac86f6930df621599a5a65bbdae689b8183d",
+      "results/reports/A7.json": "bc51d3e9dce2e0bc573a4ee54a604be7dce38ca09b1fe25bae6cfec319a0c9d9"
+    }
+  },
+  "build_command": "python -m tools.ardupilot raw --scii-gate <scii-gate> --out dataset/ardupilot-0.1.0/raw",
+  "export_command": "python -m sciitel export-ardupilot --raw dataset/ardupilot-0.1.0/raw --profile dataset/ardupilot-0.1.0/raw/profile.json --out dataset/ardupilot-0.1.0/events.jsonl --provenance dataset/ardupilot-0.1.0/provenance.json",
+  "volatile_fields": [
+    "@timestamp",
+    "observer.version"
+  ],
+  "reproducibility": "scii-gate 0.1.5 (коммит d210811) под Python 3.11 с pymonocypher 3.1.3.2 и cosign v2.4.1 заново принял решения по 16 комплектам: коды выхода, состояния, причины, индексы и решения в точности совпали с отчётами прогона 30.10.2026; различаются время, длительность и версия гейта, а в свежих отчётах добавлено поле uncertainty (окрестность N(w), как и в прогоне). Выгрузка из свежих отчётов совпадает с набором без @timestamp и observer.version. CI повторяет это в задании ardupilot.",
+  "raw": "raw/ — файлы прогона из scii-gate: results.json, отчёты reports/<сценарий>.json, план plan.json, профиль profile.json, PMI.sha256 и packages.json (плата, версия и SHA-256 пакета каждого комплекта); python -m sciitel export-ardupilot --raw raw --profile raw/profile.json воспроизводит events.jsonl побайтно",
+  "exporter": "scii-telemetry 0.1.0",
+  "schema": "1",
+  "events": 288,
+  "datasets": {
+    "scii.gate": 288
+  }
+}

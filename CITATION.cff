@@ -21,6 +21,7 @@ keywords:
   - OpenSearch
   - Elasticsearch
   - evidence graph
+  - ArduPilot
 references:
   - type: software
     title: "scii-gate: гейт допуска обновлений ПО киберфизических систем по графу доказательств"

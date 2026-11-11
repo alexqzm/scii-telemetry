@@ -1,0 +1,130 @@
+{
+ "A1a": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "d0ecb80d82c20a69514a786a4bf2dbda95bc32e4dd4d829bb099fef334f4c5ed",
+  "version": "4.5.7"
+ },
+ "A1b": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "9555dfa25af0d7bcdef25e219e33e0c9be3ef48e561077e231fad768eaed5c7d",
+  "version": "4.5.7"
+ },
+ "A2": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "992517266378d9bec5ef16e427a1aeea4dcc498fe321e2d4fd7a24825def199b",
+  "version": "4.5.7"
+ },
+ "A3": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "3311af6d9f5e5eeb2d763b5dae984dfbf882caa7966fd3ab10e9d7c1fb23e534",
+  "version": "4.5.7"
+ },
+ "A4": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "142aece2",
+  "sha256": "0e0c246f9a5b63661f2af30113c375f2be5bb9d5126b9b10fefb7f8fa66eb932",
+  "version": "4.5.5"
+ },
+ "A5a": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "dbdc63d592b4a8d62d099295516851cf9d61cc24fcb053d3891d89940f0b10b9",
+  "version": "4.5.7"
+ },
+ "A5b": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "dbdc63d592b4a8d62d099295516851cf9d61cc24fcb053d3891d89940f0b10b9",
+  "version": "4.5.7"
+ },
+ "A6": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "992517266378d9bec5ef16e427a1aeea4dcc498fe321e2d4fd7a24825def199b",
+  "version": "4.5.7"
+ },
+ "A7": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "348e1d7bb618358b5250c55193bf2e3c6c43548e57ac3a5e4dfaa2546fec048f",
+  "version": "4.5.7"
+ },
+ "B1": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "992517266378d9bec5ef16e427a1aeea4dcc498fe321e2d4fd7a24825def199b",
+  "version": "4.5.7"
+ },
+ "B2": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "992517266378d9bec5ef16e427a1aeea4dcc498fe321e2d4fd7a24825def199b",
+  "version": "4.5.7"
+ },
+ "B3": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "992517266378d9bec5ef16e427a1aeea4dcc498fe321e2d4fd7a24825def199b",
+  "version": "4.5.7"
+ },
+ "B5a": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "ae23cd90f4d4d8f46f3e3d2af3bcfaa1ed31cc7cbc1877b57a6c35af6d084032",
+  "version": "4.5.7"
+ },
+ "B5b": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "ae23cd90f4d4d8f46f3e3d2af3bcfaa1ed31cc7cbc1877b57a6c35af6d084032",
+  "version": "4.5.7"
+ },
+ "O1": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "55ccf3e399d3edb9bf6e100306431f7c734b79ac475a07f327202e5dd55169aa",
+  "version": "4.5.7"
+ },
+ "O2": {
+  "board": "CubeOrange",
+  "board_id": 140,
+  "fw_type": 255,
+  "git_identity": "2a3dc4b7",
+  "sha256": "55ccf3e399d3edb9bf6e100306431f7c734b79ac475a07f327202e5dd55169aa",
+  "version": "4.5.7"
+ }
+}

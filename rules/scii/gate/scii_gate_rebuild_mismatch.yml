@@ -6,11 +6,14 @@ description: |
     vendor's own build environment produced something its source does not explain; this is the evidence that
     exposes a compromised builder signing false provenance with its genuine key. In cps-update-lab it is refuted
     for the build from a compromised build environment and for the release archive that differs from the tag.
+    On the ArduPilot testbed of scii-gate it is refuted for the package changed after signing, the build from
+    a modified source archive, the compromised build agent and the substituted dependency.
 references:
     - https://github.com/alexqzm/scii-gate
     - https://github.com/alexqzm/cps-update-lab
 author: Alexander Kuzmin
 date: 2026-11-09
+modified: 2026-11-11
 tags:
     - attack.initial-access
     - attack.t1195.002

@@ -98,12 +98,13 @@ def index_template() -> dict:
     }
 
 
-def comparable(events: list[dict]) -> dict[str, dict]:
-    """event.id → событие без изменчивых полей."""
+def comparable(events: list[dict], ignore: tuple[str, ...] = ()) -> dict[str, dict]:
+    """event.id → событие без изменчивых полей и без полей ``ignore`` (имена через точку)."""
+    paths = VOLATILE + tuple(tuple(name.split(".")) for name in ignore)
     out = {}
     for ev in events:
         ev = copy.deepcopy(ev)
-        for path in VOLATILE:
+        for path in paths:
             node = ev
             for key in path[:-1]:
                 node = node.get(key, {})

@@ -7,20 +7,32 @@ import sys
 
 import pytest
 
-from sciitel.export import Profile, canonical_json, device_events, export_lab, write_jsonl
+from sciitel.export import Profile, canonical_json, device_events, export_ardupilot, export_lab, write_jsonl
 from sciitel.schema import comparable, load_events
-from tools.common import DATASETS, ROOT
+from tools.common import DATASETS, EXPORTER, ROOT
+
+#: стенд, из которого получен набор: раздел provenance.json и закреплённый коммит
+SOURCE_COMMIT = {
+    "cpslab": ("lab", "2d22f9c55e67f888969d89fce5eea36ae5f7ee5d"),
+    "cases": ("lab", "2d22f9c55e67f888969d89fce5eea36ae5f7ee5d"),
+    "ardupilot": ("testbed", "d210811f27a9b9302f018faf7f019d38dfbb9227"),
+}
 
 
 def _raw(name):
     return DATASETS[name] / "raw"
 
 
+def _export(name):
+    export = {"lab": export_lab, "ardupilot": export_ardupilot}[EXPORTER[name]]
+    return export(_raw(name), _raw(name) / "profile.json")
+
+
 @pytest.mark.parametrize("name", sorted(DATASETS))
 def test_dataset_is_export_of_raw(name, tmp_path):
     """events.jsonl — побайтно выгрузка сырых выходов стенда из raw/."""
     out = tmp_path / "events.jsonl"
-    write_jsonl(export_lab(_raw(name), _raw(name) / "profile.json"), out)
+    write_jsonl(_export(name), out)
     assert out.read_bytes() == (DATASETS[name] / "events.jsonl").read_bytes()
 
 
@@ -33,7 +45,23 @@ def test_provenance_counts(name):
     for ev in events:
         by[ev["event"]["dataset"]] = by.get(ev["event"]["dataset"], 0) + 1
     assert prov["datasets"] == by
-    assert prov["lab"]["commit"] == "2d22f9c55e67f888969d89fce5eea36ae5f7ee5d"
+    section, commit = SOURCE_COMMIT[name]
+    assert prov[section]["commit"] == commit
+
+
+def test_compare_ignore_option(tmp_path):
+    """compare --ignore: поле не сравнивается, остальные — как прежде."""
+    path = DATASETS["ardupilot"] / "events.jsonl"
+    events = load_events(path)
+    for ev in events:
+        ev["observer"]["version"] = "0.1.5"
+    other = tmp_path / "other.jsonl"
+    write_jsonl(events, other)
+    assert _cli("compare", str(path), str(other)).returncode == 1
+    assert _cli("compare", str(path), str(other), "--ignore", "observer.version").returncode == 0
+    events[0]["scii"]["gate"]["code"] = 30
+    write_jsonl(events, other)
+    assert _cli("compare", str(path), str(other), "--ignore", "observer.version").returncode == 1
 
 
 def test_profile_catalog():

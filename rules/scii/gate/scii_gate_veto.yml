@@ -6,12 +6,17 @@ description: |
     pointing to another source or signed by a key outside the builder role. A veto blocks the release whatever
     the integrity index, and it means that the supply chain contradicts the recipient's policy, not merely that
     evidence is missing. In cps-update-lab the gate vetoes the build from a compromised build environment, the
-    release archive that differs from the tag and the image signed with stolen vendor keys.
+    release archive that differs from the tag and the image signed with stolen vendor keys. On the ArduPilot
+    testbed of scii-gate (Copter-4.5.7) it vetoes the package changed after signing, the build from a source
+    archive that differs from git, the rollback to Copter-4.5.5, the compromised build agent caught by an
+    independent rebuild and the substituted dependency; it also vetoes the genuine package after a planned
+    vendor key change while the recipient policy still trusts the old key, the false positive listed below.
 references:
     - https://github.com/alexqzm/scii-gate
     - https://github.com/alexqzm/cps-update-lab
 author: Alexander Kuzmin
 date: 2026-11-09
+modified: 2026-11-11
 tags:
     - attack.initial-access
     - attack.t0862

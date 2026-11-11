@@ -5,11 +5,14 @@ description: |
     Detects a gate decision to request evidence (code 20): a mandatory kind of evidence was not delivered. The
     release is not admitted until the vendor supplies it; a release published around the regular pipeline,
     without build provenance, ends here. In case C9 of this repository the cps-update-lab gate requests
-    evidence for release 1.1.0 delivered without its SLSA provenance attestation (s22).
+    evidence for release 1.1.0 delivered without its SLSA provenance attestation (s22). On the ArduPilot
+    testbed of scii-gate it requests evidence for the official upstream firmware, published without a
+    package signature and build provenance, and for a genuine image released around the vendor pipeline.
 references:
     - https://github.com/alexqzm/scii-gate
 author: Alexander Kuzmin
 date: 2026-11-09
+modified: 2026-11-11
 tags:
     - attack.initial-access
     - attack.t0862

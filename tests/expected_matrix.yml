@@ -1,6 +1,7 @@
 # Матрица обнаружения: сгенерирована python -m tools.matrix --write, вручную не правится.
-# Для каждого набора и правила — прогоны стенда (события устройств) и выпуски (события гейта),
-# на которых правило срабатывает; synthetic — синтетические события tests/events/synthetic.jsonl.
+# Для каждого набора и правила — прогоны стенда (события устройств), выпуски или сценарии стенда
+# ArduPilot (события гейта), на которых правило срабатывает; synthetic — синтетические события
+# tests/events/synthetic.jsonl.
 # Пустой список: правило в наборе не срабатывает.
 cpslab:
   scii_device_boot_signature_rejected: [A1-L1]
@@ -42,6 +43,26 @@ cases:
   scii_gate_source_signature_refuted: [tank-1.1.0-stolen-key]
   scii_rejected_release_installed: []
   scii_device_management_auth_failures: [C7-L2]
+ardupilot:
+  scii_device_boot_signature_rejected: []
+  scii_device_image_digest_mismatch: []
+  scii_device_receipt_rejected: []
+  scii_device_update_without_receipt: []
+  scii_device_program_download_without_receipt: []
+  scii_device_rollback_blocked: []
+  scii_device_wrong_target: []
+  scii_device_state_invalid: []
+  scii_device_installed_image_not_admitted: []
+  scii_device_version_decreased: []
+  scii_device_report_signature_invalid: []
+  scii_device_management_command_accepted: []
+  scii_gate_veto: [B5a, A1a, A1b, A3, A4, A5a, A7]
+  scii_gate_release_rejected: [B5a, A1a, A1b, A3, A4, A5a, A7]
+  scii_gate_evidence_requested: [O1, O2, A2]
+  scii_gate_rebuild_mismatch: [A1a, A1b, A3, A5a, A7]
+  scii_gate_source_signature_refuted: [A1b, A4, A6]
+  scii_rejected_release_installed: []
+  scii_device_management_auth_failures: []
 synthetic:
   scii_device_boot_signature_rejected: []
   scii_device_image_digest_mismatch: []

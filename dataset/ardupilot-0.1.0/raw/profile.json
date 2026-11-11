@@ -1,0 +1,262 @@
+{
+ "name": "ArduPilot Copter-4.5.7, плата CubeOrange: стенд SCII",
+ "description": "Граф, классы связей и веса свидетельств те же, что в примере статьи ВАК-2. Каждому типу свидетельства сопоставлена реальная проверка (поле check). Порог задаётся в ПМИ стенда.",
+ "theta": 0.496,
+ "class_codes": {
+  "слабая": 0.2,
+  "средняя": 0.5,
+  "сильная": 0.8,
+  "критическая": 1.0
+ },
+ "vertices": [
+  {
+   "id": "v1",
+   "name": "источник",
+   "mandatory": false
+  },
+  {
+   "id": "v2",
+   "name": "сборка",
+   "mandatory": true
+  },
+  {
+   "id": "v3",
+   "name": "репозиторий артефактов",
+   "mandatory": false
+  },
+  {
+   "id": "v4",
+   "name": "пакет обновления",
+   "mandatory": true
+  },
+  {
+   "id": "v5",
+   "name": "устройство",
+   "mandatory": false
+  }
+ ],
+ "edges": [
+  {
+   "from": "v1",
+   "to": "v2",
+   "class": "сильная"
+  },
+  {
+   "from": "v2",
+   "to": "v3",
+   "class": "критическая"
+  },
+  {
+   "from": "v3",
+   "to": "v4",
+   "class": "сильная"
+  },
+  {
+   "from": "v4",
+   "to": "v5",
+   "class": "сильная"
+  }
+ ],
+ "catalog": {
+  "v1": [
+   {
+    "id": "s11",
+    "name": "подписи коммитов",
+    "alpha": 0.4,
+    "mandatory": false,
+    "check": {
+     "type": "git_commit_signature"
+    }
+   },
+   {
+    "id": "s12",
+    "name": "рецензирование изменений",
+    "alpha": 0.3,
+    "mandatory": false,
+    "check": {
+     "type": "source_attestation",
+     "role": "reviewer",
+     "predicate_type": "urn:scii:predicate:review:v1",
+     "result_field": "result",
+     "ok_values": [
+      "APPROVED"
+     ]
+    }
+   },
+   {
+    "id": "s13",
+    "name": "отчёт статического анализа",
+    "alpha": 0.2,
+    "mandatory": false,
+    "check": {
+     "type": "source_attestation",
+     "role": "sast",
+     "predicate_type": "urn:scii:predicate:sast:v1",
+     "result_field": "status",
+     "ok_values": [
+      "COMPLETED"
+     ]
+    }
+   },
+   {
+    "id": "s14",
+    "name": "подписанный тег выпуска",
+    "alpha": 0.1,
+    "mandatory": false,
+    "check": {
+     "type": "signed_tag"
+    }
+   }
+  ],
+  "v2": [
+   {
+    "id": "s21",
+    "name": "подпись сборочного агента",
+    "alpha": 0.3,
+    "mandatory": false,
+    "check": {
+     "type": "artifact_attestation",
+     "role": "builder",
+     "predicate_type": "https://in-toto.io/attestation/link/v0.3",
+     "kind": "link"
+    }
+   },
+   {
+    "id": "s22",
+    "name": "аттестация происхождения (SLSA)",
+    "alpha": 0.3,
+    "mandatory": true,
+    "check": {
+     "type": "artifact_attestation",
+     "role": "builder",
+     "predicate_type": "https://slsa.dev/provenance/v1",
+     "kind": "slsa"
+    }
+   },
+   {
+    "id": "s23",
+    "name": "воспроизводимая сборка",
+    "alpha": 0.3,
+    "mandatory": false,
+    "check": {
+     "type": "artifact_attestation",
+     "role": "builder",
+     "predicate_type": "urn:scii:predicate:rebuild:v1",
+     "kind": "rebuild"
+    }
+   },
+   {
+    "id": "s24",
+    "name": "независимая контрольная пересборка",
+    "alpha": 0.1,
+    "mandatory": false,
+    "check": {
+     "type": "artifact_attestation",
+     "role": "independent_builder",
+     "predicate_type": "urn:scii:predicate:rebuild:v1",
+     "kind": "rebuild"
+    }
+   }
+  ],
+  "v3": [
+   {
+    "id": "s31",
+    "name": "подтверждение неизменности",
+    "alpha": 0.5,
+    "mandatory": false,
+    "check": {
+     "type": "repository_log",
+     "kind": "immutability"
+    }
+   },
+   {
+    "id": "s32",
+    "name": "контроль доступа на запись",
+    "alpha": 0.5,
+    "mandatory": false,
+    "check": {
+     "type": "repository_log",
+     "kind": "access"
+    }
+   }
+  ],
+  "v4": [
+   {
+    "id": "s41",
+    "name": "SBOM",
+    "alpha": 0.3,
+    "mandatory": false,
+    "check": {
+     "type": "artifact_attestation",
+     "role": "builder",
+     "predicate_type": "https://cyclonedx.org/bom",
+     "kind": "sbom"
+    }
+   },
+   {
+    "id": "s42",
+    "name": "подпись пакета",
+    "alpha": 0.4,
+    "mandatory": true,
+    "check": {
+     "type": "cosign_signature",
+     "role": "vendor"
+    }
+   },
+   {
+    "id": "s43",
+    "name": "результаты тестирования",
+    "alpha": 0.3,
+    "mandatory": false,
+    "check": {
+     "type": "source_attestation",
+     "role": "tester",
+     "predicate_type": "https://in-toto.io/attestation/test-result/v0.1",
+     "result_field": "result",
+     "ok_values": [
+      "PASSED"
+     ]
+    }
+   }
+  ],
+  "v5": [
+   {
+    "id": "s51",
+    "name": "проверка подписи образа загрузчиком",
+    "alpha": 0.4,
+    "mandatory": false,
+    "check": {
+     "type": "secure_boot"
+    }
+   },
+   {
+    "id": "s52",
+    "name": "защита от отката версии",
+    "alpha": 0.3,
+    "mandatory": false,
+    "check": {
+     "type": "version"
+    }
+   },
+   {
+    "id": "s53",
+    "name": "привязка к устройству",
+    "alpha": 0.2,
+    "mandatory": false,
+    "check": {
+     "type": "board"
+    }
+   },
+   {
+    "id": "s54",
+    "name": "аппаратная аттестация",
+    "alpha": 0.1,
+    "mandatory": false,
+    "check": {
+     "type": "hardware_attestation"
+    }
+   }
+  ]
+ },
+ "theta_note": "θ = R_P^min эталонной записи Э (ПМИ, разд. 5), округлённое вниз до 0,001: R_P^min(Э) = 0,4968. Классы рёбер, веса α и обязательность вершин те же, что в примере статьи ВАК-2."
+}

@@ -1,8 +1,9 @@
 """Командная строка scii-telemetry.
 
   python -m sciitel export --lab-home DIR --profile profile.json --out events.jsonl [--provenance FILE]
+  python -m sciitel export-ardupilot --raw DIR --profile profile.json --out events.jsonl [--provenance FILE]
   python -m sciitel validate events.jsonl [...]
-  python -m sciitel compare A.jsonl B.jsonl   # совпадают ли наборы без изменчивых полей
+  python -m sciitel compare A.jsonl B.jsonl [--ignore FIELD ...]  # совпадают ли наборы без изменчивых полей
   python -m sciitel index-template [--out FILE]  # шаблон индекса OpenSearch и Elasticsearch по схеме
   python -m sciitel bulk events.jsonl --index scii-lab > bulk.ndjson  # тело запроса _bulk
 """
@@ -15,12 +16,19 @@ import sys
 from pathlib import Path
 
 from . import SCHEMA_VERSION, __version__
-from .export import export_lab, write_jsonl
+from .export import export_ardupilot, export_lab, write_jsonl
 from .schema import comparable, index_template, load_events, validate
 
 
 def cmd_export(a) -> int:
-    events = export_lab(Path(a.lab_home), Path(a.profile))
+    return _write_export(export_lab(Path(a.lab_home), Path(a.profile)), a)
+
+
+def cmd_export_ardupilot(a) -> int:
+    return _write_export(export_ardupilot(Path(a.raw), Path(a.profile)), a)
+
+
+def _write_export(events: list[dict], a) -> int:
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     write_jsonl(events, out)
@@ -52,9 +60,11 @@ def cmd_validate(a) -> int:
 
 
 def cmd_compare(a) -> int:
-    left, right = (comparable(load_events(Path(p))) for p in (a.left, a.right))
+    ignore = tuple(a.ignore or ())
+    left, right = (comparable(load_events(Path(p)), ignore) for p in (a.left, a.right))
     if left == right:
-        print(f"наборы совпадают без изменчивых полей: {len(left)} событий")
+        extra = f" и {', '.join(ignore)}" if ignore else ""
+        print(f"наборы совпадают без изменчивых полей{extra}: {len(left)} событий")
         return 0
     lk, rk = set(left), set(right)
     for k in sorted(lk - rk)[:20]:
@@ -95,12 +105,20 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--out", required=True)
     e.add_argument("--provenance", help="дописать сведения о выгрузке в этот JSON")
     e.set_defaults(func=cmd_export)
+    r = sub.add_parser("export-ardupilot", help="выгрузить решения гейта стенда ArduPilot из файлов прогона scii-gate")
+    r.add_argument("--raw", required=True, help="каталог прогона: results.json, reports/, packages.json")
+    r.add_argument("--profile", required=True, help="профиль политики гейта (каталог свидетельств)")
+    r.add_argument("--out", required=True)
+    r.add_argument("--provenance", help="дописать сведения о выгрузке в этот JSON")
+    r.set_defaults(func=cmd_export_ardupilot)
     v = sub.add_parser("validate", help="проверить события по схеме")
     v.add_argument("files", nargs="+")
     v.set_defaults(func=cmd_validate)
     c = sub.add_parser("compare", help="сравнить наборы событий без изменчивых полей")
     c.add_argument("left")
     c.add_argument("right")
+    c.add_argument("--ignore", action="append", metavar="FIELD",
+                   help="не сравнивать ещё и это поле (имя через точку), можно несколько раз")
     c.set_defaults(func=cmd_compare)
     t = sub.add_parser("index-template", help="шаблон индекса OpenSearch и Elasticsearch по схеме событий")
     t.add_argument("--out", help="записать в файл (по умолчанию — в stdout)")

@@ -3,8 +3,8 @@
 Правила исполняются стендом tools.harness (SQLite с конвейером полей репозитория; корреляции — по
 спецификации Sigma) на наборах dataset/*/events.jsonl и на синтетических событиях
 tests/events/synthetic.jsonl. Срабатывание на событии устройства записывается прогоном стенда
-(labels.cpslab_run), на событии гейта — выпуском (scii.gate.variant), на синтетическом событии —
-его event.id.
+(labels.cpslab_run), на событии гейта — выпуском или сценарием стенда ArduPilot
+(scii.gate.variant), на синтетическом событии — его event.id.
 
   python -m tools.matrix --write   # tests/expected_matrix.yml, docs/matrix.md, docs/rules.md, блоки README.md
   python -m tools.matrix --check   # всё перечисленное совпадает с правилами и наборами
@@ -30,6 +30,8 @@ README = ROOT / "README.md"
 LEVEL_RU = {"informational": "информационный", "low": "низкий", "medium": "средний", "high": "высокий",
             "critical": "критический"}
 DECISION_RU = {0: "допуск", 10: "ручное рассмотрение", 20: "запрос свидетельств", 30: "отказ"}
+#: группы сценариев стенда ArduPilot по ПМИ: выпуск апстрима, штатный выпуск поставщика, атака
+GROUP_RU = {"O": "апстрим", "B": "штатный", "A": "атака"}
 LEVEL_TITLES = ("L0: без проверки", "L1: подпись поставщика", "L2: квитанция гейта SCII")
 
 
@@ -55,6 +57,13 @@ def scenarios() -> list[dict]:
 @lru_cache(maxsize=1)
 def cases() -> dict:
     return json.loads((DATASETS["cases"] / "raw" / "cases.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def ardupilot_plan() -> dict:
+    """Сценарии ПМИ стенда ArduPilot (план испытаний scii-gate, testbed/plan.json) по идентификатору."""
+    plan = json.loads((DATASETS["ardupilot"] / "raw" / "plan.json").read_text(encoding="utf-8"))
+    return {s["id"]: s for s in plan["scenarios"]}
 
 
 def _order(events: list[dict]):
@@ -94,8 +103,9 @@ def expected_synthetic(rfs: list[RuleFile]) -> dict:
 def matrix_yaml(m: dict) -> str:
     lines = [
         "# Матрица обнаружения: сгенерирована python -m tools.matrix --write, вручную не правится.",
-        "# Для каждого набора и правила — прогоны стенда (события устройств) и выпуски (события гейта),",
-        "# на которых правило срабатывает; synthetic — синтетические события tests/events/synthetic.jsonl.",
+        "# Для каждого набора и правила — прогоны стенда (события устройств), выпуски или сценарии стенда",
+        "# ArduPilot (события гейта), на которых правило срабатывает; synthetic — синтетические события",
+        "# tests/events/synthetic.jsonl.",
         "# Пустой список: правило в наборе не срабатывает.",
     ]
     for name, rules in m.items():
@@ -204,6 +214,19 @@ def gate_table(m: dict, rfs: list[RuleFile], mappings: dict) -> str:
     return "\n".join(rows)
 
 
+def ardupilot_table(m: dict, rfs: list[RuleFile], mappings: dict) -> str:
+    events = dataset_events("ardupilot")
+    gate, plan = _gate_info(events), ardupilot_plan()
+    rows = ["| Сценарий ПМИ | Группа | Решение гейта | Опровергнуты | Не предъявлены обязательные | Правила |",
+            "|---|---|---|---|---|---|"]
+    for variant, rec in sorted(gate.items(), key=lambda kv: kv[1]["serial"]):
+        labels = _labels(m, "ardupilot", variant, rfs, mappings)
+        rows.append(f"| {variant} {plan[variant]['title']} | {GROUP_RU[variant[0]]} | {_decision(rec)} | "
+                    f"{', '.join(rec['refuted']) or '—'} | {', '.join(rec['missing_mandatory']) or '—'} | "
+                    f"{'; '.join(labels) or '—'} |")
+    return "\n".join(rows)
+
+
 def _scenario_ids(places: list[str]) -> str:
     """A2-L0, A2-L1, A3-L0 → A2 (L0, L1), A3 (L0)."""
     groups: dict[str, list[str]] = {}
@@ -214,7 +237,8 @@ def _scenario_ids(places: list[str]) -> str:
 
 
 def rules_summary(m: dict, rfs: list[RuleFile], mappings: dict) -> str:
-    rows = ["| Правило | Уровень | Сценарии стенда | Случаи C1–C9 | Синтетика |", "|---|---|---|---|---|"]
+    rows = ["| Правило | Уровень | Сценарии cps-update-lab | Случаи C1–C9 | Стенд ArduPilot | Синтетика |",
+            "|---|---|---|---|---|---|"]
     for rf in rfs:
         lab = m["cpslab"][rf.key]
         if "gate" in rf.services and not rf.correlation:
@@ -223,9 +247,10 @@ def rules_summary(m: dict, rfs: list[RuleFile], mappings: dict) -> str:
         else:
             lab_text = _scenario_ids(lab)
             cases_text = _scenario_ids(m["cases"][rf.key])
+        ardupilot_text = ", ".join(m["ardupilot"][rf.key]) or "—"
         level = LEVEL_RU[rf.primary.level.name.lower()]
         rows.append(f"| [`{rf.key}`](../{rf.rel}) — {mappings['rules'][rf.key]['label']} | {level} | {lab_text} | "
-                    f"{cases_text} | {', '.join(m['synthetic'][rf.key]) or '—'} |")
+                    f"{cases_text} | {ardupilot_text} | {', '.join(m['synthetic'][rf.key]) or '—'} |")
     return "\n".join(rows)
 
 
@@ -279,6 +304,15 @@ def doc_matrix(m: dict, rfs: list[RuleFile], mappings: dict) -> str:
         "",
         gate_table(m, rfs, mappings),
         "",
+        "## Стенд ArduPilot",
+        "",
+        "Набор `dataset/ardupilot-0.1.0`: решения гейта по 16 сценариям программы испытаний стенда",
+        "ArduPilot Copter-4.5.7 для платы CubeOrange из [scii-gate](https://github.com/alexqzm/scii-gate),",
+        "официальный прогон 30.10.2026. Устройства на стенде нет, поэтому срабатывают только правила",
+        "гейта. Группы — по ПМИ стенда: выпуск апстрима, штатный выпуск поставщика, атака.",
+        "",
+        ardupilot_table(m, rfs, mappings),
+        "",
         "## По правилам",
         "",
         rules_summary(m, rfs, mappings),
@@ -301,7 +335,8 @@ def doc_rules(rfs: list[RuleFile], mappings: dict) -> str:
 
 
 def readme_text(current: str, m: dict, rfs: list[RuleFile], mappings: dict) -> str:
-    blocks = {"matrix": scenario_table(m, rfs, mappings), "rules": rules_table(rfs, mappings, "")}
+    blocks = {"matrix": scenario_table(m, rfs, mappings), "ardupilot": ardupilot_table(m, rfs, mappings),
+              "rules": rules_table(rfs, mappings, "")}
     for name, body in blocks.items():
         begin, end = f"<!-- {name}:begin -->", f"<!-- {name}:end -->"
         if begin not in current or end not in current:

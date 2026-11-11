@@ -5,11 +5,13 @@ description: |
     Detects a gate decision to reject a release (code 30): a veto, or an upper bound of the integrity index
     below the policy threshold. Unlike a request for missing evidence, a rejection means that the delivered
     evidence does not support the release; in cps-update-lab it also covers the compromised build without an
-    independent rebuild, where nothing is refuted but the index stays below the threshold.
+    independent rebuild, where nothing is refuted but the index stays below the threshold. On the ArduPilot
+    testbed of scii-gate every rejection comes with a veto.
 references:
     - https://github.com/alexqzm/scii-gate
 author: Alexander Kuzmin
 date: 2026-11-09
+modified: 2026-11-11
 tags:
     - attack.initial-access
     - attack.t0862

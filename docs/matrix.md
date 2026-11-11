@@ -63,26 +63,52 @@
 | 8 | `tank-1.1.0-stolen-key` | отказ, вето | s11, s14, s21, s22, s41 | — | вето гейта; отказ гейта; источник не подтверждён (s11, s14) |
 | 9 | `tank-1.1.0-no-provenance` | запрос свидетельств | — | s22 | запрос свидетельств |
 
+## Стенд ArduPilot
+
+Набор `dataset/ardupilot-0.1.0`: решения гейта по 16 сценариям программы испытаний стенда
+ArduPilot Copter-4.5.7 для платы CubeOrange из [scii-gate](https://github.com/alexqzm/scii-gate),
+официальный прогон 30.10.2026. Устройства на стенде нет, поэтому срабатывают только правила
+гейта. Группы — по ПМИ стенда: выпуск апстрима, штатный выпуск поставщика, атака.
+
+| Сценарий ПМИ | Группа | Решение гейта | Опровергнуты | Не предъявлены обязательные | Правила |
+|---|---|---|---|---|---|
+| O1 Официальный выпуск firmware.ardupilot.org в опубликованном виде | апстрим | запрос свидетельств | — | s22, s42 | запрос свидетельств |
+| O2 O1 и контрольная пересборка стенда из тега (s24) | апстрим | запрос свидетельств | — | s22, s42 | запрос свидетельств |
+| B1 Цепочка поставщика с полным набором свидетельств стенда (эталонная запись Э) | штатный | допуск | — | — | — |
+| B2 B1 без SBOM | штатный | ручное рассмотрение | — | — | — |
+| B3 B1 без контрольной пересборки | штатный | ручное рассмотрение | — | — | — |
+| B5a Плановая смена ключей поставщика, политика получателя не обновлена | штатный | отказ, вето | s42, s51 | — | вето гейта; отказ гейта |
+| B5b Плановая смена ключей поставщика, политика обновлена (оба ключа) | штатный | допуск | — | — | — |
+| A1a Пакет изменён после подписи, CRC и подписи не пересчитаны | атака | отказ, вето | s21, s22, s23, s24, s31, s41, s42, s51 | — | вето гейта; отказ гейта; пересборка не совпала (s24) |
+| A1b Пакет изменён, нарушитель пересчитал CRC и подписал всё своими ключами | атака | отказ, вето | s13, s14, s21, s22, s23, s24, s31, s32, s41, s42, s43, s51 | — | вето гейта; отказ гейта; пересборка не совпала (s24); источник не подтверждён (s11, s14) |
+| A2 Выпуск в обход конвейера: подлинный образ без свидетельств сборки и хранилища | атака | запрос свидетельств | — | s22 | запрос свидетельств |
+| A3 Сборка из архива исходников, отличного от git (схема xz), честное provenance | атака | отказ, вето | s21, s22, s24 | — | вето гейта; отказ гейта; пересборка не совпала (s24) |
+| A4 Откат: подлинная цепочка предыдущего выпуска Copter-4.5.5 | атака | отказ, вето | s11, s14, s21, s22, s41, s52 | — | вето гейта; отказ гейта; источник не подтверждён (s11, s14) |
+| A5a Скомпрометированный сборочный агент, есть контрольная пересборка | атака | отказ, вето | s24 | — | вето гейта; отказ гейта; пересборка не совпала (s24) |
+| A5b Скомпрометированный сборочный агент, контрольной пересборки нет | атака | ручное рассмотрение | — | — | — |
+| A6 Тег выпуска подписан ключом вне политики | атака | ручное рассмотрение | s14 | — | источник не подтверждён (s11, s14) |
+| A7 Подмена зависимости: libcanard на другом коммите | атака | отказ, вето | s24, s41 | — | вето гейта; отказ гейта; пересборка не совпала (s24) |
+
 ## По правилам
 
-| Правило | Уровень | Сценарии стенда | Случаи C1–C9 | Синтетика |
-|---|---|---|---|---|
-| [`scii_device_boot_signature_rejected`](../rules/scii/device/scii_device_boot_signature_rejected.yml) — подпись образа (BOOT_SIG) | высокий | A1 (L1) | — | — |
-| [`scii_device_image_digest_mismatch`](../rules/scii/device/scii_device_image_digest_mismatch.yml) — образ не тот, что в квитанции | высокий | A1 (L2) | C6 (L2) | — |
-| [`scii_device_receipt_rejected`](../rules/scii/device/scii_device_receipt_rejected.yml) — квитанция отвергнута | высокий | — | C1 (L2), C2 (L2), C3 (L2), C4 (L2), C5 (L2) | — |
-| [`scii_device_update_without_receipt`](../rules/scii/device/scii_device_update_without_receipt.yml) — обновление без квитанции | высокий | A2 (L2), A3 (L2), A3b (L2), A7 (L2) | — | — |
-| [`scii_device_program_download_without_receipt`](../rules/scii/device/scii_device_program_download_without_receipt.yml) — загрузка логики без квитанции | высокий | A6 (L2) | — | — |
-| [`scii_device_rollback_blocked`](../rules/scii/device/scii_device_rollback_blocked.yml) — откат остановлен (ROLLBACK) | высокий | A4 (L2) | — | — |
-| [`scii_device_wrong_target`](../rules/scii/device/scii_device_wrong_target.yml) — чужое устройство (TARGET) | средний | A5 (L2) | — | — |
-| [`scii_device_state_invalid`](../rules/scii/device/scii_device_state_invalid.yml) — нет состояния (STATE) | высокий | — | — | synthetic-S1-0002 |
-| [`scii_device_installed_image_not_admitted`](../rules/scii/device/scii_device_installed_image_not_admitted.yml) — установлен недопущенный образ | высокий | A1 (L0), A2 (L0, L1), A3 (L0, L1), A3b (L0, L1), A5 (L0, L1), A6 (L0, L1), A7 (L0, L1) | — | — |
-| [`scii_device_version_decreased`](../rules/scii/device/scii_device_version_decreased.yml) — версия понизилась | высокий | A4 (L0, L1) | — | — |
-| [`scii_device_report_signature_invalid`](../rules/scii/device/scii_device_report_signature_invalid.yml) — отчёт подделан | высокий | — | C8 (L0) | — |
-| [`scii_device_management_command_accepted`](../rules/scii/device/scii_device_management_command_accepted.yml) — команда управления | средний | M2 (L0, L1, L2) | C7 (L2) | — |
-| [`scii_gate_veto`](../rules/scii/gate/scii_gate_veto.yml) — вето гейта | высокий | `tank-1.1.0-compromised-build`, `tank-1.1.0-from-archive`, `tank-1.1.0-stolen-key` | — | — |
-| [`scii_gate_release_rejected`](../rules/scii/gate/scii_gate_release_rejected.yml) — отказ гейта | средний | `tank-1.1.0-compromised-build`, `tank-1.1.0-compromised-build-norebuild`, `tank-1.1.0-from-archive`, `tank-1.1.0-stolen-key` | — | — |
-| [`scii_gate_evidence_requested`](../rules/scii/gate/scii_gate_evidence_requested.yml) — запрос свидетельств | низкий | — | `tank-1.1.0-no-provenance` | — |
-| [`scii_gate_rebuild_mismatch`](../rules/scii/gate/scii_gate_rebuild_mismatch.yml) — пересборка не совпала (s24) | высокий | `tank-1.1.0-compromised-build`, `tank-1.1.0-from-archive` | — | — |
-| [`scii_gate_source_signature_refuted`](../rules/scii/gate/scii_gate_source_signature_refuted.yml) — источник не подтверждён (s11, s14) | высокий | `tank-1.1.0-stolen-key` | — | — |
-| [`scii_rejected_release_installed`](../rules/scii/correlation/scii_rejected_release_installed.yml) — отвергнутый гейтом образ установлен | критический | A1 (L0), A2 (L0, L1), A3 (L0, L1), A3b (L0, L1), A6 (L0, L1), A7 (L0, L1) | — | — |
-| [`scii_device_management_auth_failures`](../rules/scii/correlation/scii_device_management_auth_failures.yml) — подбор пароля | средний | — | C7 (L2) | synthetic-S2-0004 |
+| Правило | Уровень | Сценарии cps-update-lab | Случаи C1–C9 | Стенд ArduPilot | Синтетика |
+|---|---|---|---|---|---|
+| [`scii_device_boot_signature_rejected`](../rules/scii/device/scii_device_boot_signature_rejected.yml) — подпись образа (BOOT_SIG) | высокий | A1 (L1) | — | — | — |
+| [`scii_device_image_digest_mismatch`](../rules/scii/device/scii_device_image_digest_mismatch.yml) — образ не тот, что в квитанции | высокий | A1 (L2) | C6 (L2) | — | — |
+| [`scii_device_receipt_rejected`](../rules/scii/device/scii_device_receipt_rejected.yml) — квитанция отвергнута | высокий | — | C1 (L2), C2 (L2), C3 (L2), C4 (L2), C5 (L2) | — | — |
+| [`scii_device_update_without_receipt`](../rules/scii/device/scii_device_update_without_receipt.yml) — обновление без квитанции | высокий | A2 (L2), A3 (L2), A3b (L2), A7 (L2) | — | — | — |
+| [`scii_device_program_download_without_receipt`](../rules/scii/device/scii_device_program_download_without_receipt.yml) — загрузка логики без квитанции | высокий | A6 (L2) | — | — | — |
+| [`scii_device_rollback_blocked`](../rules/scii/device/scii_device_rollback_blocked.yml) — откат остановлен (ROLLBACK) | высокий | A4 (L2) | — | — | — |
+| [`scii_device_wrong_target`](../rules/scii/device/scii_device_wrong_target.yml) — чужое устройство (TARGET) | средний | A5 (L2) | — | — | — |
+| [`scii_device_state_invalid`](../rules/scii/device/scii_device_state_invalid.yml) — нет состояния (STATE) | высокий | — | — | — | synthetic-S1-0002 |
+| [`scii_device_installed_image_not_admitted`](../rules/scii/device/scii_device_installed_image_not_admitted.yml) — установлен недопущенный образ | высокий | A1 (L0), A2 (L0, L1), A3 (L0, L1), A3b (L0, L1), A5 (L0, L1), A6 (L0, L1), A7 (L0, L1) | — | — | — |
+| [`scii_device_version_decreased`](../rules/scii/device/scii_device_version_decreased.yml) — версия понизилась | высокий | A4 (L0, L1) | — | — | — |
+| [`scii_device_report_signature_invalid`](../rules/scii/device/scii_device_report_signature_invalid.yml) — отчёт подделан | высокий | — | C8 (L0) | — | — |
+| [`scii_device_management_command_accepted`](../rules/scii/device/scii_device_management_command_accepted.yml) — команда управления | средний | M2 (L0, L1, L2) | C7 (L2) | — | — |
+| [`scii_gate_veto`](../rules/scii/gate/scii_gate_veto.yml) — вето гейта | высокий | `tank-1.1.0-compromised-build`, `tank-1.1.0-from-archive`, `tank-1.1.0-stolen-key` | — | B5a, A1a, A1b, A3, A4, A5a, A7 | — |
+| [`scii_gate_release_rejected`](../rules/scii/gate/scii_gate_release_rejected.yml) — отказ гейта | средний | `tank-1.1.0-compromised-build`, `tank-1.1.0-compromised-build-norebuild`, `tank-1.1.0-from-archive`, `tank-1.1.0-stolen-key` | — | B5a, A1a, A1b, A3, A4, A5a, A7 | — |
+| [`scii_gate_evidence_requested`](../rules/scii/gate/scii_gate_evidence_requested.yml) — запрос свидетельств | низкий | — | `tank-1.1.0-no-provenance` | O1, O2, A2 | — |
+| [`scii_gate_rebuild_mismatch`](../rules/scii/gate/scii_gate_rebuild_mismatch.yml) — пересборка не совпала (s24) | высокий | `tank-1.1.0-compromised-build`, `tank-1.1.0-from-archive` | — | A1a, A1b, A3, A5a, A7 | — |
+| [`scii_gate_source_signature_refuted`](../rules/scii/gate/scii_gate_source_signature_refuted.yml) — источник не подтверждён (s11, s14) | высокий | `tank-1.1.0-stolen-key` | — | A1b, A4, A6 | — |
+| [`scii_rejected_release_installed`](../rules/scii/correlation/scii_rejected_release_installed.yml) — отвергнутый гейтом образ установлен | критический | A1 (L0), A2 (L0, L1), A3 (L0, L1), A3b (L0, L1), A6 (L0, L1), A7 (L0, L1) | — | — | — |
+| [`scii_device_management_auth_failures`](../rules/scii/correlation/scii_device_management_auth_failures.yml) — подбор пароля | средний | — | C7 (L2) | — | synthetic-S2-0004 |

@@ -12,7 +12,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tools.common import DATASETS, EXPECTED, load_mappings
+from sciitel.export import ardupilot_entries
+from tools.common import DATASETS, EXPECTED, EXPORTER, load_mappings
 from tools.matrix import compute, expected_synthetic, ordered_rule_files
 
 RAW = {name: path / "raw" for name, path in DATASETS.items()}
@@ -49,7 +50,7 @@ def test_every_rule_fires_somewhere(matrix):
 
 def test_only_state_rule_relies_on_synthetic_alone(matrix):
     synthetic_only = [key for key in matrix["cpslab"]
-                      if matrix["synthetic"][key] and not matrix["cpslab"][key] and not matrix["cases"][key]]
+                      if matrix["synthetic"][key] and not any(matrix[name][key] for name in DATASETS)]
     assert synthetic_only == ["scii_device_state_invalid"]
 
 
@@ -122,9 +123,17 @@ def _ledger(name):
     return [json.loads(x) for x in (RAW[name] / "gate" / "ledger.jsonl").read_text(encoding="utf-8").splitlines()]
 
 
+def _decisions(name):
+    """Записи о решениях гейта и отчёты scii-gate: журнал cps-update-lab или файлы прогона ArduPilot."""
+    if EXPORTER[name] == "ardupilot":
+        return ardupilot_entries(RAW[name])
+    return [(entry, json.loads((RAW[name] / entry["run"] / "report.json").read_text(encoding="utf-8")))
+            for entry in _ledger(name)]
+
+
 @pytest.mark.parametrize("name", sorted(DATASETS))
 def test_rejected_release_installed_recomputed(matrix, name):
-    rejected = {e["sha256"] for e in _ledger(name) if e["code"] == 30}
+    rejected = {e["sha256"] for e, _ in _decisions(name) if e["code"] == 30}
     want = sorted({run for run, r in _raw_reports(name)
                    if r["event"] == "install" and r["accepted"] and r["installed_sha256"] in rejected})
     assert sorted(matrix[name]["scii_rejected_release_installed"]) == want
@@ -141,11 +150,7 @@ def test_lab_image_reuse_explains_a1_and_a6(matrix):
 
 # ---------------- гейт: сверка с сырыми отчётами scii-gate ----------------
 def _gate_reports(name):
-    out = {}
-    for entry in _ledger(name):
-        report = json.loads((RAW[name] / entry["run"] / "report.json").read_text(encoding="utf-8"))
-        out[entry["variant"]] = (entry, report)
-    return out
+    return {entry["variant"]: (entry, report) for entry, report in _decisions(name)}
 
 
 GATE_ORACLE = {

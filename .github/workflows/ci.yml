@@ -145,6 +145,47 @@ jobs:
             python -m sciitel compare "$RUNNER_TEMP/$name.jsonl" "dataset/$name-0.1.0/events.jsonl"
           done
 
+  ardupilot:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # pymonocypher 3.1.3.2 (проверка подписи загрузчика ArduPilot, s51) собирается под 3.11, но не под 3.13
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - name: Установка (версии и хеши закреплены)
+        run: python -m pip install --require-hashes -r requirements.txt
+      - name: cosign (SHA-256 закреплён)
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -sSfL -o "$RUNNER_TEMP/bin/cosign" \
+            "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64"
+          echo "${COSIGN_SHA256}  $RUNNER_TEMP/bin/cosign" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/bin/cosign"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: scii-gate (коммит закреплён) и его зависимости в отдельном окружении
+        run: |
+          git clone -q https://github.com/alexqzm/scii-gate "$RUNNER_TEMP/scii-gate"
+          git -C "$RUNNER_TEMP/scii-gate" checkout -q "$SCII_GATE_COMMIT"
+          python -m venv "$RUNNER_TEMP/gate"
+          "$RUNNER_TEMP/gate/bin/python" -m pip install --require-hashes -r "$RUNNER_TEMP/scii-gate/ci/requirements-tests.txt"
+      - name: raw/ совпадает с файлами прогона 30.10.2026 и пакетами комплектов в scii-gate
+        run: |
+          "$RUNNER_TEMP/gate/bin/python" -m tools.ardupilot raw --scii-gate "$RUNNER_TEMP/scii-gate" --out "$RUNNER_TEMP/raw"
+          diff -r "$RUNNER_TEMP/raw" dataset/ardupilot-0.1.0/raw
+      - name: Решения гейта заново по 16 комплектам и сверка отчётов с прогоном
+        run: |
+          "$RUNNER_TEMP/gate/bin/python" -m tools.ardupilot rerun --scii-gate "$RUNNER_TEMP/scii-gate" \
+            --raw dataset/ardupilot-0.1.0/raw --out "$RUNNER_TEMP/rerun"
+      - name: Выгрузка из свежих отчётов совпадает с набором (кроме версии гейта)
+        run: |
+          python -m sciitel export-ardupilot --raw "$RUNNER_TEMP/rerun" \
+            --profile "$RUNNER_TEMP/rerun/profile.json" --out "$RUNNER_TEMP/ardupilot.jsonl"
+          python -m sciitel compare "$RUNNER_TEMP/ardupilot.jsonl" dataset/ardupilot-0.1.0/events.jsonl \
+            --ignore observer.version
+
   lint:
     runs-on: ubuntu-24.04
     steps:

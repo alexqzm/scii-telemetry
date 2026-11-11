@@ -1,0 +1,8 @@
+# SHA-256 ПМИ и плана, записаны до прогона сценариев
+# время записи (UTC): 2026-10-30T12:12:03Z
+1d36158cb626ed6a106015afea8447308d683540c7edb83a1a6adb8a6cdf6c43  docs/PMI.md
+d5983f128c8d5181843abeca2bc3ff2760ee90a7350f92ec353c9aeb294c58a3  testbed/plan.json
+e37f6a0e154130fc1c6d5c37df051014e4092581f93c5114c17d60c47d94362e  docs/plan_table.md
+9e6730d195d4d91bb6714ab983777716b9be17a7c9d05483ade32abb67e5d538  profiles/ardupilot_cubeorange.json
+3207e75bec0c039337fde993e8e9ccc6baac5824743ea36784e18f910b87ff9d  testbed/policy/policy.json
+c190e807bd73ed1e5b216a20964359cb95adcfafc9df54b004e73aa32e450642  testbed/policy/policy-rotated.json

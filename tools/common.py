@@ -15,11 +15,15 @@ from sigma.rule import SigmaRule
 
 ROOT = Path(__file__).resolve().parent.parent
 RULES = ROOT / "rules"
-#: наборы событий: сценарии стенда cps-update-lab и дополнительные случаи labcases/cases.py
+#: наборы событий: сценарии стенда cps-update-lab, дополнительные случаи labcases/cases.py и
+#: решения гейта стенда ArduPilot из scii-gate (tools/ardupilot.py)
 DATASETS = {
     "cpslab": ROOT / "dataset" / "cpslab-0.1.0",
     "cases": ROOT / "dataset" / "cases-0.1.0",
+    "ardupilot": ROOT / "dataset" / "ardupilot-0.1.0",
 }
+#: чем набор выгружается из своего raw/: каталог стенда cps-update-lab или файлы прогона ArduPilot
+EXPORTER = {"cpslab": "lab", "cases": "lab", "ardupilot": "ardupilot"}
 #: синтетические события для правил, которых стенд не касается (с описанием в поле _test)
 SYNTHETIC = ROOT / "tests" / "events" / "synthetic.jsonl"
 CONVERSIONS = ROOT / "conversions"

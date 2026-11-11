@@ -5,12 +5,16 @@ description: |
     Detects refuted evidence about the release source: commit signatures (s11) or the signed release tag (s14)
     do not verify with trusted keys, or the commit is not the one the tag points to. In cps-update-lab both are
     refuted for the malicious image signed with stolen vendor keys: the package signature is valid, but the
-    source of the release is not the vendor's.
+    source of the release is not the vendor's. On the ArduPilot testbed of scii-gate the gate sends a release
+    tag signed with a key outside the policy only to manual review, because the source stage is not
+    mandatory; this rule raises it to a high-severity alert. It also fires for the rollback to the previous
+    release and for the package re-signed with the attacker's keys.
 references:
     - https://github.com/alexqzm/scii-gate
     - https://github.com/alexqzm/cps-update-lab
 author: Alexander Kuzmin
 date: 2026-11-09
+modified: 2026-11-11
 tags:
     - attack.initial-access
     - attack.t1195.002
